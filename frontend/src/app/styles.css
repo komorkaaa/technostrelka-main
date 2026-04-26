@@ -1,0 +1,189 @@
+:root {
+  --bg0: #0b1020;
+  --bg1: #111a33;
+  --card: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.66);
+  --accent: #7dd3fc;
+  --accent2: #a78bfa;
+  --danger: #fb7185;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  --radius: 16px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 20% 0%, rgba(125, 211, 252, 0.22), transparent 60%),
+    radial-gradient(900px 500px at 90% 30%, rgba(167, 139, 250, 0.22), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 40px 16px;
+}
+
+.card {
+  width: min(420px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  padding: 18px 18px 16px;
+}
+
+.card.wide {
+  width: min(720px, 100%);
+}
+
+.cardHeader {
+  padding: 8px 8px 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  padding: 6px 8px 10px;
+}
+
+.label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.input {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  outline: none;
+}
+
+.input:focus {
+  border-color: rgba(125, 211, 252, 0.55);
+  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.12);
+}
+
+.btn {
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.22), rgba(167, 139, 250, 0.18));
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.btn:hover {
+  border-color: rgba(125, 211, 252, 0.38);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cardFooter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+.errorBox {
+  border: 1px solid rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.10);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.errorTitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 4px;
+}
+
+.errorMsg {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px 10px;
+}
+
+.hint {
+  padding: 10px 8px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.spinnerWrap {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(125, 211, 252, 0.75);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
