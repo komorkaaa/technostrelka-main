@@ -26,7 +26,8 @@ COPY infra/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY infra/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY infra/nginx/docker-entrypoint.d/10-generate-cert.sh /docker-entrypoint.d/10-generate-cert.sh
 
-RUN chmod +x /docker-entrypoint.d/10-generate-cert.sh \
+RUN sed -i 's/\r$//' /docker-entrypoint.d/10-generate-cert.sh \
+  && chmod +x /docker-entrypoint.d/10-generate-cert.sh \
   && mkdir -p /etc/nginx/certs
 
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html

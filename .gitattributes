@@ -1,0 +1,4 @@
+* text=auto
+
+# Shell scripts must keep Unix EOL for Linux containers/servers.
+*.sh text eol=lf
