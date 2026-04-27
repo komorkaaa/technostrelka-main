@@ -4,7 +4,13 @@ from sqlalchemy.orm import Session
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
 from app.schemas.quest import QuestCheckpointCreate, QuestCreate
-from app.services.quest import add_checkpoint, create_quest, submit_quest_for_moderation
+from app.services.quest import (
+    add_checkpoint,
+    create_quest,
+    get_published_quest_with_checkpoints,
+    list_published_quests,
+    submit_quest_for_moderation,
+)
 
 router = APIRouter()
 
@@ -51,5 +57,73 @@ def submit_quest_endpoint(
         "data": {
             "id": quest.id,
             "status": quest.status,
+        },
+    }
+
+
+@router.get("")
+def list_quests_endpoint(
+    page: int = 1,
+    db: Session = Depends(get_db),
+):
+    if page < 1:
+        page = 1
+
+    quests = list_published_quests(db, page=page)
+    return {
+        "success": True,
+        "data": {
+            "page": page,
+            "page_size": 10,
+            "items": [
+                {
+                    "id": quest.id,
+                    "title": quest.title,
+                    "description": quest.description,
+                    "city_area": quest.city_area,
+                    "difficulty": quest.difficulty,
+                    "duration_minutes": quest.duration_minutes,
+                    "status": quest.status,
+                    "published_at": quest.published_at,
+                }
+                for quest in quests
+            ],
+        },
+    }
+
+
+@router.get("/{quest_id}")
+def get_quest_endpoint(
+    quest_id: int,
+    db: Session = Depends(get_db),
+):
+    quest, checkpoints = get_published_quest_with_checkpoints(db, quest_id=quest_id)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "title": quest.title,
+            "description": quest.description,
+            "city_area": quest.city_area,
+            "difficulty": quest.difficulty,
+            "duration_minutes": quest.duration_minutes,
+            "rules": quest.rules,
+            "cover_path": quest.cover_path,
+            "status": quest.status,
+            "published_at": quest.published_at,
+            "checkpoints": [
+                {
+                    "id": checkpoint.id,
+                    "order_index": checkpoint.order_index,
+                    "title": checkpoint.title,
+                    "lat": checkpoint.lat,
+                    "lon": checkpoint.lon,
+                    "task_type": checkpoint.task_type,
+                    "task_text": checkpoint.task_text,
+                    "hint": checkpoint.hint,
+                    "safety_rules": checkpoint.safety_rules,
+                }
+                for checkpoint in checkpoints
+            ],
         },
     }

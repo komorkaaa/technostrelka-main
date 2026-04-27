@@ -10,11 +10,6 @@ from app.schemas.quest import QuestCheckpointCreate, QuestCreate
 
 
 def create_quest(db: Session, user: User, data: QuestCreate) -> Quest:
-    if data.difficulty < 1 or data.difficulty > 5:
-        raise HTTPException(status_code=400, detail="Difficulty must be between 1 and 5")
-    if data.duration_minutes <= 0:
-        raise HTTPException(status_code=400, detail="Duration must be positive")
-
     quest = Quest(
         author_user_id=user.id,
         title=data.title.strip(),
@@ -32,9 +27,7 @@ def create_quest(db: Session, user: User, data: QuestCreate) -> Quest:
 
 
 def _validate_checkpoint_payload(data: QuestCheckpointCreate) -> None:
-    task_type = data.task_type.strip().lower()
-    if task_type not in {"codeword", "quiz"}:
-        raise HTTPException(status_code=400, detail="Unsupported task_type")
+    task_type = data.task_type
 
     if task_type == "codeword":
         if not data.codeword_answer:
@@ -59,7 +52,7 @@ def add_checkpoint(db: Session, user: User, quest_id: int, data: QuestCheckpoint
         raise HTTPException(status_code=409, detail="Checkpoints can be edited only in draft status")
 
     _validate_checkpoint_payload(data)
-    task_type = data.task_type.strip().lower()
+    task_type = data.task_type
 
     checkpoint = QuestCheckpoint(
         quest_id=quest.id,
@@ -100,6 +93,72 @@ def submit_quest_for_moderation(db: Session, user: User, quest_id: int) -> Quest
         raise HTTPException(status_code=400, detail="Quest must contain at least 3 checkpoints")
 
     quest.status = "moderation"
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
+def list_published_quests(db: Session, page: int) -> list[Quest]:
+    offset = (page - 1) * 10
+    return (
+        db.query(Quest)
+        .filter(Quest.status == "published")
+        .order_by(Quest.created_at.desc())
+        .offset(offset)
+        .limit(10)
+        .all()
+    )
+
+
+def get_published_quest_with_checkpoints(db: Session, quest_id: int) -> tuple[Quest, list[QuestCheckpoint]]:
+    quest = db.get(Quest, quest_id)
+    if not quest or quest.status != "published":
+        raise HTTPException(status_code=404, detail="Quest not found")
+
+    checkpoints = (
+        db.query(QuestCheckpoint)
+        .filter(QuestCheckpoint.quest_id == quest.id)
+        .order_by(QuestCheckpoint.order_index.asc())
+        .all()
+    )
+    return quest, checkpoints
+
+
+def list_moderation_quests(db: Session) -> list[Quest]:
+    return (
+        db.query(Quest)
+        .filter(Quest.status == "moderation")
+        .order_by(Quest.created_at.asc())
+        .all()
+    )
+
+
+def approve_quest(db: Session, quest_id: int) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    if quest.status != "moderation":
+        raise HTTPException(status_code=409, detail="Only moderation quest can be approved")
+
+    quest.status = "published"
+    quest.reject_reason = None
+    quest.published_at = datetime.utcnow()
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
+def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    if quest.status != "moderation":
+        raise HTTPException(status_code=409, detail="Only moderation quest can be rejected")
+
+    quest.status = "rejected"
+    quest.reject_reason = reason.strip()
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)

@@ -29,3 +29,9 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
 
     return user
+
+
+def get_current_moderator(user: User = Depends(get_current_user)):
+    if user.role != "moderator":
+        raise HTTPException(status_code=403, detail="Moderator role required")
+    return user
