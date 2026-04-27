@@ -169,6 +169,8 @@ def get_quest_endpoint(
                     "lon": checkpoint.lon,
                     "task_type": checkpoint.task_type,
                     "task_text": checkpoint.task_text,
+                    "quiz_question": checkpoint.quiz_question,
+                    "quiz_options": checkpoint.quiz_options,
                     "hint": checkpoint.hint,
                     "safety_rules": checkpoint.safety_rules,
                 }

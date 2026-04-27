@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes } from "react";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className="input" {...props} />;
+  const { className, ...rest } = props;
+  return <input className={`input ${className ?? ""}`} {...rest} />;
 }
-

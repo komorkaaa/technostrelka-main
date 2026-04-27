@@ -34,8 +34,8 @@ export function LoginPage() {
     <div className="page">
       <div className="card">
         <div className="cardHeader">
-          <h1>Welcome back</h1>
-          <p className="muted">Sign in to continue</p>
+          <h1>Вход</h1>
+          <p className="muted">Войдите, чтобы продолжить</p>
         </div>
 
         <form className="form" onSubmit={onSubmit}>
@@ -44,12 +44,12 @@ export function LoginPage() {
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
           </label>
           <label className="label">
-            Password
+            Пароль
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              placeholder="Your password"
+              placeholder="Ваш пароль"
             />
           </label>
 
@@ -61,15 +61,14 @@ export function LoginPage() {
           ) : null}
 
           <Button type="submit" disabled={!canSubmit}>
-            {submitting ? "Signing in..." : "Sign in"}
+            {submitting ? "Входим..." : "Войти"}
           </Button>
         </form>
 
         <div className="cardFooter">
-          <span className="muted">No account?</span> <Link to="/register">Create one</Link>
+          <span className="muted">Нет аккаунта?</span> <Link to="/register">Зарегистрироваться</Link>
         </div>
       </div>
     </div>
   );
 }
-

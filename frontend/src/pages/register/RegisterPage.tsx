@@ -34,8 +34,8 @@ export function RegisterPage() {
     <div className="page">
       <div className="card">
         <div className="cardHeader">
-          <h1>Create account</h1>
-          <p className="muted">Register and you will be logged in</p>
+          <h1>Регистрация</h1>
+          <p className="muted">После регистрации вы автоматически войдёте</p>
         </div>
 
         <form className="form" onSubmit={onSubmit}>
@@ -44,12 +44,12 @@ export function RegisterPage() {
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
           </label>
           <label className="label">
-            Password
+            Пароль
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="Минимум 6 символов"
             />
           </label>
 
@@ -61,15 +61,14 @@ export function RegisterPage() {
           ) : null}
 
           <Button type="submit" disabled={!canSubmit}>
-            {submitting ? "Creating..." : "Create account"}
+            {submitting ? "Создаём..." : "Создать аккаунт"}
           </Button>
         </form>
 
         <div className="cardFooter">
-          <span className="muted">Already have an account?</span> <Link to="/login">Sign in</Link>
+          <span className="muted">Уже есть аккаунт?</span> <Link to="/login">Войти</Link>
         </div>
       </div>
     </div>
   );
 }
-

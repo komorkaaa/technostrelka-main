@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
 export function Button(props: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button className="btn" {...props} />;
+  const { className, ...rest } = props;
+  return <button className={`btn ${className ?? ""}`} {...rest} />;
 }
-
