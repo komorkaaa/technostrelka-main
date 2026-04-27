@@ -35,13 +35,13 @@ def create_team(db: Session, owner: User, data: TeamCreate) -> Team:
             db.rollback()
             continue
 
-    raise HTTPException(status_code=409, detail="Failed to generate unique join code")
+    raise HTTPException(status_code=409, detail="Не удалось сгенерировать уникальный код вступления")
 
 
 def join_team_by_code(db: Session, user: User, code: str) -> Team:
     team = db.query(Team).filter(Team.join_code == code.upper().strip()).first()
     if not team:
-        raise HTTPException(status_code=404, detail="Team not found")
+        raise HTTPException(status_code=404, detail="Команда не найдена")
 
     membership = (
         db.query(TeamMember)
@@ -49,11 +49,11 @@ def join_team_by_code(db: Session, user: User, code: str) -> Team:
         .first()
     )
     if membership:
-        raise HTTPException(status_code=409, detail="User is already in this team")
+        raise HTTPException(status_code=409, detail="Вы уже состоите в этой команде")
 
     members_count = db.query(TeamMember).filter(TeamMember.team_id == team.id).count()
     if members_count >= MAX_TEAM_MEMBERS:
-        raise HTTPException(status_code=409, detail="Team is full")
+        raise HTTPException(status_code=409, detail="Команда заполнена")
 
     db.add(TeamMember(team_id=team.id, user_id=user.id, role="member"))
     db.commit()

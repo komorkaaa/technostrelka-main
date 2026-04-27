@@ -4,6 +4,7 @@ import type { DifficultyPreset, QuestCreateRequest, QuestDetails, QuestListItem,
 type QuestListResponse = {
   page: number;
   page_size: number;
+  has_next: boolean;
   items: QuestListItem[];
 };
 

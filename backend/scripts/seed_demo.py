@@ -39,6 +39,14 @@ def _create_users(db: Session) -> list[User]:
     )
     db.add(moderator)
     users.append(moderator)
+
+    admin = User(
+        email="admin",
+        hashed_password=hash_password("demo123"),
+        role="admin",
+    )
+    db.add(admin)
+    users.append(admin)
     db.flush()
     return users
 
@@ -214,7 +222,7 @@ def main():
         _create_runs(db, teams, users, quests)
 
         db.commit()
-        print("Seed complete: users, teams, quests, runs, moderator")
+        print("Seed complete: users, teams, quests, runs, moderator, admin")
     finally:
         db.close()
 

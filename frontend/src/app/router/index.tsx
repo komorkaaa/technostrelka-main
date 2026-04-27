@@ -12,6 +12,20 @@ import { ProfilePage } from "@/pages/profile/ProfilePage";
 import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage";
 import { ModerationPage } from "@/pages/moderation/ModerationPage";
 import { RunPage } from "@/pages/runs/RunPage";
+import { AdminPage } from "@/pages/admin/AdminPage";
+import { useAuth } from "@/features/auth/model/useAuth";
+
+function RoleAwarePublicPage({ children }: { children: React.ReactNode }) {
+  const { status, user } = useAuth();
+
+  if (status === "authenticated" && user?.role === "moderator") {
+    return <Navigate to="/moderation" replace />;
+  }
+  if (status === "authenticated" && user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+  return <>{children}</>;
+}
 
 export function AppRouter() {
   return (
@@ -21,13 +35,13 @@ export function AppRouter() {
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<AppShell />}>
           <Route path="/status" element={<StatusPage />} />
-          <Route path="/" element={<QuestsPage />} />
-          <Route path="/quests/:id" element={<QuestDetailsPage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/" element={<RoleAwarePublicPage><QuestsPage /></RoleAwarePublicPage>} />
+          <Route path="/quests/:id" element={<RoleAwarePublicPage><QuestDetailsPage /></RoleAwarePublicPage>} />
+          <Route path="/leaderboard" element={<RoleAwarePublicPage><LeaderboardPage /></RoleAwarePublicPage>} />
           <Route
             path="/create"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user"]}>
                 <QuestCreatePage />
               </ProtectedRoute>
             }
@@ -35,7 +49,7 @@ export function AppRouter() {
           <Route
             path="/teams"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user"]}>
                 <TeamsPage />
               </ProtectedRoute>
             }
@@ -43,7 +57,7 @@ export function AppRouter() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user"]}>
                 <ProfilePage />
               </ProtectedRoute>
             }
@@ -51,15 +65,23 @@ export function AppRouter() {
           <Route
             path="/moderation"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["moderator"]} redirectTo="/">
                 <ModerationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]} redirectTo="/">
+                <AdminPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/runs/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user"]}>
                 <RunPage />
               </ProtectedRoute>
             }

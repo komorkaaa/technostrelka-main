@@ -8,22 +8,36 @@ function navCls({ isActive }: { isActive: boolean }) {
 
 export function AppShell() {
   const { status, user, logout } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const isModerator = user?.role === "moderator";
+  const isRegularUser = status === "authenticated" && !isAdmin && !isModerator;
+  const homePath = isAdmin ? "/admin" : isModerator ? "/moderation" : "/";
 
   return (
     <div className="shell">
       <header className="topbar">
-        <Link className="brand" to="/">
+        <Link className="brand" to={homePath}>
           City Quests
         </Link>
         <nav className="nav">
-          <NavLink to="/" className={navCls} end>
-            Квесты
-          </NavLink>
-          <NavLink to="/leaderboard" className={navCls}>
-            Рейтинг
-          </NavLink>
-          {status === "authenticated" && (
+          {status !== "authenticated" && (
             <>
+              <NavLink to="/" className={navCls} end>
+                Квесты
+              </NavLink>
+              <NavLink to="/leaderboard" className={navCls}>
+                Рейтинг
+              </NavLink>
+            </>
+          )}
+          {isRegularUser && (
+            <>
+              <NavLink to="/" className={navCls} end>
+                Квесты
+              </NavLink>
+              <NavLink to="/leaderboard" className={navCls}>
+                Рейтинг
+              </NavLink>
               <NavLink to="/create" className={navCls}>
                 Создать
               </NavLink>
@@ -35,9 +49,14 @@ export function AppShell() {
               </NavLink>
             </>
           )}
-          {status === "authenticated" && user?.role === "moderator" && (
+          {isModerator && (
             <NavLink to="/moderation" className={navCls}>
               Модерация
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to="/admin" className={navCls}>
+              Админ-панель
             </NavLink>
           )}
         </nav>

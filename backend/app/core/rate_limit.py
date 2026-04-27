@@ -26,7 +26,7 @@ def rate_limit(action: str, max_per_minute: int):
                 q.popleft()
 
             if len(q) >= max_per_minute:
-                raise HTTPException(status_code=429, detail="Too many requests")
+                raise HTTPException(status_code=429, detail="Слишком много запросов")
 
             q.append(now)
 

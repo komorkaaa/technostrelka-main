@@ -16,12 +16,12 @@ def create_complaint(db: Session, user: User, data: ComplaintCreate) -> Complain
     if quest_id is not None:
         quest = db.get(Quest, quest_id)
         if not quest:
-            raise HTTPException(status_code=404, detail="Quest not found")
+            raise HTTPException(status_code=404, detail="Квест не найден")
 
     if checkpoint_id is not None:
         checkpoint = db.get(QuestCheckpoint, checkpoint_id)
         if not checkpoint:
-            raise HTTPException(status_code=404, detail="Checkpoint not found")
+            raise HTTPException(status_code=404, detail="Точка не найдена")
 
     complaint = Complaint(
         author_user_id=user.id,
@@ -46,7 +46,7 @@ def list_complaints(db: Session, status: str | None = None) -> list[Complaint]:
 def resolve_complaint(db: Session, complaint_id: int) -> Complaint:
     complaint = db.get(Complaint, complaint_id)
     if not complaint:
-        raise HTTPException(status_code=404, detail="Complaint not found")
+        raise HTTPException(status_code=404, detail="Жалоба не найдена")
     complaint.status = "handled"
     db.commit()
     db.refresh(complaint)

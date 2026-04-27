@@ -109,7 +109,7 @@ def list_quests_endpoint(
     if page < 1:
         page = 1
 
-    quests = list_published_quests(
+    quests, has_next = list_published_quests(
         db,
         page=page,
         min_duration=min_duration,
@@ -124,6 +124,7 @@ def list_quests_endpoint(
         "data": {
             "page": page,
             "page_size": 10,
+            "has_next": has_next,
             "items": [
                 {
                     "id": quest.id,
