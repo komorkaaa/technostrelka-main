@@ -30,7 +30,11 @@ def app():
 def _db_schema(_test_env):
     # For tests we create schema directly; production uses Alembic migrations.
     from app.db.session import Base, engine
+    # Import all models so SQLAlchemy knows about the tables.
     from app.models.user import User  # noqa: F401
+    from app.models.team import Team, TeamMember  # noqa: F401
+    from app.models.quest import Quest, QuestCheckpoint  # noqa: F401
+    from app.models.run import RunSession, RunCheckpointProgress  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     yield
