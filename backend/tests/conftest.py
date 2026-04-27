@@ -35,6 +35,7 @@ def _db_schema(_test_env):
     from app.models.team import Team, TeamMember  # noqa: F401
     from app.models.quest import Quest, QuestCheckpoint  # noqa: F401
     from app.models.run import RunSession, RunCheckpointProgress  # noqa: F401
+    from app.models.complaint import Complaint  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     yield
