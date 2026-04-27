@@ -1,4 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from typing import Literal
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+AgeGroup = Literal["14-15", "16-17"]
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -10,9 +15,15 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class UserProfileUpdate(BaseModel):
+    nickname: str | None = Field(default=None, min_length=2, max_length=32)
+    age_group: AgeGroup | None = None
+
 class UserOut(BaseModel):
     id: int
     email: str
+    nickname: str | None = None
+    age_group: AgeGroup | None = None
 
     class Config:
         from_attributes = True
