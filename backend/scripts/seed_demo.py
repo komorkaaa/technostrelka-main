@@ -1,8 +1,14 @@
 import random
 import secrets
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
+
+# Ensure `/app` is on sys.path when running as a standalone script inside Docker
+# (python sets sys.path[0] to the script directory: `/app/scripts`).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.security import hash_password
 from app.db.session import SessionLocal
@@ -10,6 +16,7 @@ from app.models.quest import Quest, QuestCheckpoint
 from app.models.run import RunCheckpointProgress, RunSession
 from app.models.team import Team, TeamMember
 from app.models.user import User
+from app.models.complaint import Complaint
 
 
 def _create_users(db: Session) -> list[User]:
@@ -17,6 +24,8 @@ def _create_users(db: Session) -> list[User]:
     for idx in range(1, 10):
         user = User(
             email=f"user{idx}@example.com",
+            nickname=f"user{idx}",
+            age_group="14-15" if idx <= 5 else "16-17",
             hashed_password=hash_password("demo123"),
             role="user",
         )
@@ -189,6 +198,7 @@ def main():
     random.seed(42)
     db = SessionLocal()
     try:
+        db.query(Complaint).delete()
         db.query(RunCheckpointProgress).delete()
         db.query(RunSession).delete()
         db.query(TeamMember).delete()

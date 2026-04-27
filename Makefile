@@ -25,7 +25,7 @@ migrate:
 	docker compose exec backend alembic upgrade head
 
 seed:
-	docker compose exec backend python scripts/seed_demo.py
+	docker compose exec backend python /app/scripts/seed_demo.py
 
 backend-shell:
 	docker compose exec backend sh
@@ -38,4 +38,3 @@ front-dev:
 
 front-typecheck:
 	cd frontend && npm install && npm run typecheck
-
