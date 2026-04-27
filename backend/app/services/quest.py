@@ -247,6 +247,36 @@ def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
     return quest
 
 
+def archive_quest(db: Session, user: User, quest_id: int) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    if quest.author_user_id != user.id:
+        raise HTTPException(status_code=403, detail="Only quest author can archive quest")
+    if quest.status != "published":
+        raise HTTPException(status_code=409, detail="Only published quest can be archived")
+
+    quest.status = "archived"
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
+def hide_quest(db: Session, quest_id: int) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    if quest.status != "published":
+        raise HTTPException(status_code=409, detail="Only published quest can be hidden")
+
+    quest.status = "hidden"
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
 def set_quest_cover(db: Session, user: User, quest_id: int, file: UploadFile) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:

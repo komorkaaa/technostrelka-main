@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.run import RunCheckpointProgress, RunSession
 from app.models.team import Team, TeamMember
@@ -35,6 +36,24 @@ def start_run(db: Session, user: User, data: RunStartRequest) -> RunSession:
 
     run = None
     if data.mode == "solo":
+        anti_cheat_from = datetime.utcnow() - timedelta(hours=24)
+        recent_finish = (
+            db.query(RunSession)
+            .filter(
+                RunSession.user_id == user.id,
+                RunSession.quest_id == quest.id,
+                RunSession.status == "finished",
+                RunSession.finished_at.is_not(None),
+                RunSession.finished_at >= anti_cheat_from,
+            )
+            .first()
+        )
+        if recent_finish:
+            raise HTTPException(
+                status_code=409,
+                detail="This user already has a finished run for this quest in last 24 hours",
+            )
+
         run = RunSession(
             quest_id=quest.id,
             mode="solo",
@@ -169,6 +188,9 @@ def submit_run_answer(db: Session, user: User, run_id: int, data: RunSubmitReque
         raise HTTPException(status_code=409, detail="No active checkpoint to submit")
 
     progress, checkpoint = active_progress_row
+    if checkpoint.task_type == "codeword" and progress.attempts >= settings.CODEWORD_MAX_ATTEMPTS:
+        raise HTTPException(status_code=429, detail="Too many attempts for this checkpoint")
+
     progress.attempts += 1
 
     is_correct = False

@@ -6,7 +6,7 @@ from app.dependencies.db import get_db
 from app.schemas.complaint import ComplaintResolveRequest
 from app.schemas.moderation import ModerationRejectRequest
 from app.services.complaint import list_complaints, resolve_complaint
-from app.services.quest import approve_quest, list_moderation_quests, reject_quest
+from app.services.quest import approve_quest, hide_quest, list_moderation_quests, reject_quest
 
 router = APIRouter()
 
@@ -69,6 +69,22 @@ def reject_quest_endpoint(
             "id": quest.id,
             "status": quest.status,
             "reject_reason": quest.reject_reason,
+        },
+    }
+
+
+@router.post("/quests/{quest_id}/hide")
+def hide_quest_endpoint(
+    quest_id: int,
+    db: Session = Depends(get_db),
+    _moderator=Depends(get_current_moderator),
+):
+    quest = hide_quest(db, quest_id=quest_id)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "status": quest.status,
         },
     }
 

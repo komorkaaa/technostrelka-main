@@ -6,6 +6,7 @@ from app.dependencies.db import get_db
 from app.schemas.quest import QuestCheckpointCreate, QuestCreate
 from app.services.quest import (
     add_checkpoint,
+    archive_quest,
     create_quest,
     get_published_quest_with_checkpoints,
     list_published_quests,
@@ -53,6 +54,22 @@ def submit_quest_endpoint(
     user=Depends(get_current_user),
 ):
     quest = submit_quest_for_moderation(db, user=user, quest_id=quest_id)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "status": quest.status,
+        },
+    }
+
+
+@router.post("/{quest_id}/archive")
+def archive_quest_endpoint(
+    quest_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    quest = archive_quest(db, user=user, quest_id=quest_id)
     return {
         "success": True,
         "data": {

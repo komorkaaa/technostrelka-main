@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     AUTH_RATE_LIMIT_PER_MINUTE: int = 60
     MEDIA_DIR: str = "uploads"
     QUEST_COVER_MAX_BYTES: int = 5 * 1024 * 1024
+    CODEWORD_MAX_ATTEMPTS: int = 5
 
     @computed_field
     @property
