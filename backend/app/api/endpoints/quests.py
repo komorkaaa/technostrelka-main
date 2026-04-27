@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_current_user
@@ -9,6 +9,7 @@ from app.services.quest import (
     create_quest,
     get_published_quest_with_checkpoints,
     list_published_quests,
+    set_quest_cover,
     submit_quest_for_moderation,
 )
 
@@ -57,6 +58,22 @@ def submit_quest_endpoint(
         "data": {
             "id": quest.id,
             "status": quest.status,
+        },
+    }
+
+@router.post("/{quest_id}/cover")
+def upload_quest_cover_endpoint(
+    quest_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    quest = set_quest_cover(db, user=user, quest_id=quest_id, file=file)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "cover_path": quest.cover_path,
         },
     }
 

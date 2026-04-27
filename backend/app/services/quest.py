@@ -1,9 +1,13 @@
+import secrets
+from pathlib import Path
+
 from datetime import datetime
 
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.user import User
 from app.schemas.quest import QuestCheckpointCreate, QuestCreate
@@ -159,6 +163,53 @@ def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
 
     quest.status = "rejected"
     quest.reject_reason = reason.strip()
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
+def set_quest_cover(db: Session, user: User, quest_id: int, file: UploadFile) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    if quest.author_user_id != user.id:
+        raise HTTPException(status_code=403, detail="Only quest author can set cover")
+    if quest.status != "draft":
+        raise HTTPException(status_code=409, detail="Cover can be set only in draft status")
+
+    content_type = (file.content_type or "").lower()
+    if not content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Cover must be an image")
+
+    original_name = (file.filename or "cover").strip()
+    suffix = Path(original_name).suffix.lower()
+    if suffix not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+        # Keep it simple for MVP; prevents tricky content types masquerading as images.
+        raise HTTPException(status_code=400, detail="Unsupported image format")
+
+    upload_dir = Path(settings.media_dir_path)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"quest_{quest.id}_{secrets.token_hex(8)}{suffix}"
+    dest_path = upload_dir / filename
+
+    total = 0
+    with dest_path.open("wb") as out:
+        while True:
+            chunk = file.file.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > settings.QUEST_COVER_MAX_BYTES:
+                try:
+                    dest_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                raise HTTPException(status_code=400, detail="Cover file is too large (max 5MB)")
+            out.write(chunk)
+
+    quest.cover_path = f"/uploads/{filename}"
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
