@@ -81,12 +81,27 @@ def upload_quest_cover_endpoint(
 @router.get("")
 def list_quests_endpoint(
     page: int = 1,
+    min_duration: int | None = None,
+    max_duration: int | None = None,
+    difficulty_preset: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    radius_m: float | None = None,
     db: Session = Depends(get_db),
 ):
     if page < 1:
         page = 1
 
-    quests = list_published_quests(db, page=page)
+    quests = list_published_quests(
+        db,
+        page=page,
+        min_duration=min_duration,
+        max_duration=max_duration,
+        difficulty_preset=difficulty_preset,
+        lat=lat,
+        lon=lon,
+        radius_m=radius_m,
+    )
     return {
         "success": True,
         "data": {

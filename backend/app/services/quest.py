@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 from fastapi import HTTPException, UploadFile
+from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -103,12 +104,89 @@ def submit_quest_for_moderation(db: Session, user: User, quest_id: int) -> Quest
     return quest
 
 
-def list_published_quests(db: Session, page: int) -> list[Quest]:
+def _difficulty_range_for_preset(preset: str) -> tuple[int, int] | None:
+    preset = preset.strip().lower()
+    if preset == "ask":
+        return (1, 2)
+    if preset == "play":
+        return (3, 3)
+    if preset == "pro":
+        return (4, 5)
+    return None
+
+
+def list_published_quests(
+    db: Session,
+    page: int,
+    min_duration: int | None = None,
+    max_duration: int | None = None,
+    difficulty_preset: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    radius_m: float | None = None,
+) -> list[Quest]:
     offset = (page - 1) * 10
+
+    q = db.query(Quest).filter(Quest.status == "published")
+
+    if min_duration is not None:
+        q = q.filter(Quest.duration_minutes >= min_duration)
+    if max_duration is not None:
+        q = q.filter(Quest.duration_minutes <= max_duration)
+
+    if difficulty_preset:
+        rng = _difficulty_range_for_preset(difficulty_preset)
+        if not rng:
+            raise HTTPException(status_code=400, detail="Invalid difficulty_preset")
+        lo, hi = rng
+        q = q.filter(Quest.difficulty >= lo, Quest.difficulty <= hi)
+
+    # Nearby filter: by start checkpoint (order_index=1).
+    if lat is not None or lon is not None or radius_m is not None:
+        if lat is None or lon is None or radius_m is None:
+            raise HTTPException(status_code=400, detail="lat, lon and radius_m must be provided together")
+        if radius_m <= 0:
+            raise HTTPException(status_code=400, detail="radius_m must be > 0")
+
+        start_cp = QuestCheckpoint
+        q = q.join(
+            start_cp,
+            and_(start_cp.quest_id == Quest.id, start_cp.order_index == 1),
+        )
+
+        # Cheap bounding box prefilter (degrees).
+        # 1 deg latitude ~= 111_320 m; longitude depends on latitude.
+        deg_lat = radius_m / 111_320.0
+        q = q.filter(start_cp.lat.between(lat - deg_lat, lat + deg_lat))
+
+        # Avoid division by zero near the poles.
+        import math
+
+        cos_lat = max(0.1, abs(math.cos(math.radians(lat))))
+        deg_lon = radius_m / (111_320.0 * cos_lat)
+        q = q.filter(start_cp.lon.between(lon - deg_lon, lon + deg_lon))
+
+        # Precise haversine (meters) using SQL functions.
+        from sqlalchemy import func
+
+        r = 6_371_000.0
+        lat1 = func.radians(lat)
+        lon1 = func.radians(lon)
+        lat2 = func.radians(start_cp.lat)
+        lon2 = func.radians(start_cp.lon)
+
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = func.pow(func.sin(dlat / 2.0), 2) + func.cos(lat1) * func.cos(lat2) * func.pow(
+            func.sin(dlon / 2.0), 2
+        )
+        c = 2.0 * func.atan2(func.sqrt(a), func.sqrt(1.0 - a))
+        distance_m = r * c
+
+        q = q.filter(distance_m <= radius_m)
+
     return (
-        db.query(Quest)
-        .filter(Quest.status == "published")
-        .order_by(Quest.created_at.desc())
+        q.order_by(Quest.created_at.desc())
         .offset(offset)
         .limit(10)
         .all()
