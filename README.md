@@ -128,4 +128,4 @@ docker compose down -v
 - `make reset-db`
 - `make migrate`
 - `make test-backend`
-- `make front-typecheck`g
+- `make front-typecheck`
