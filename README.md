@@ -5,7 +5,12 @@
 - Регистрация и авторизация пользователя по JWT.
 - Обновление access-токена через refresh-токен.
 - Получение текущего пользователя (`me`) по Bearer-токену.
-- Web-клиент (React) с auth flow: login/register, protected route, auto-refresh.
+- Профиль пользователя: никнейм + возрастная группа.
+- Команды: создание и вступление по коду.
+- Квесты: создание (draft), чекпоинты, обложка (upload), модерация, публикация/архив/скрытие.
+- Прохождение квеста: соло/команда, строгий порядок чекпоинтов, очки и лидерборд.
+- Жалобы: отправка пользователем + просмотр/resolve модератором.
+- Web-клиент (React): лента, создание квеста, прохождение, модерация, карта.
 - Единая точка входа через Nginx (HTTPS) и проксирование `/api/*` на backend.
 
 ## Структура репозитория
@@ -69,7 +74,15 @@ docker-compose.yml
 - `POST /api/v1/auth/register`
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/refresh`
-- `GET  /api/v1/user/me`
+- `GET  /api/v1/user/me` / `PATCH /api/v1/user/me`
+- `GET  /api/v1/quests` / `GET /api/v1/quests/{id}`
+- `POST /api/v1/quests` / `{id}/checkpoints` / `{id}/cover` / `{id}/submit` / `{id}/archive`
+- `POST /api/v1/teams` / `POST /api/v1/teams/join` / `GET /api/v1/teams/my`
+- `POST /api/v1/runs/start` / `GET /api/v1/runs/{id}` / `{id}/submit` / `{id}/abandon`
+- `GET  /api/v1/leaderboard/teams`
+- `POST /api/v1/complaints`
+- `GET  /api/v1/moderation/quests` / approve / reject / hide
+- `GET  /api/v1/moderation/complaints` / resolve
 - `GET  /health`
 
 ## Требования

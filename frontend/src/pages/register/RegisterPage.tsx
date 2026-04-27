@@ -4,10 +4,13 @@ import { useAuth } from "@/features/auth/model/useAuth";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import type { ApiError } from "@/shared/api/types";
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +25,7 @@ export function RegisterPage() {
     setError(null);
     try {
       await register(email.trim(), password);
+      toast.push({ kind: "success", message: "Аккаунт создан. Добро пожаловать!" });
       navigate("/", { replace: true });
     } catch (e2) {
       setError(e2 as ApiError);
@@ -34,8 +38,8 @@ export function RegisterPage() {
     <div className="page">
       <div className="card">
         <div className="cardHeader">
-          <h1>Create account</h1>
-          <p className="muted">Register and you will be logged in</p>
+          <h1>Регистрация</h1>
+          <p className="muted">После регистрации вы автоматически войдёте</p>
         </div>
 
         <form className="form" onSubmit={onSubmit}>
@@ -44,32 +48,26 @@ export function RegisterPage() {
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
           </label>
           <label className="label">
-            Password
+            Пароль
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="Минимум 6 символов"
             />
           </label>
 
-          {error ? (
-            <div className="errorBox">
-              <div className="errorTitle">{error.code}</div>
-              <div className="errorMsg">{error.message}</div>
-            </div>
-          ) : null}
+          {error ? <ApiErrorBox error={error} /> : null}
 
           <Button type="submit" disabled={!canSubmit}>
-            {submitting ? "Creating..." : "Create account"}
+            {submitting ? "Создаём..." : "Создать аккаунт"}
           </Button>
         </form>
 
         <div className="cardFooter">
-          <span className="muted">Already have an account?</span> <Link to="/login">Sign in</Link>
+          <span className="muted">Уже есть аккаунт?</span> <Link to="/login">Войти</Link>
         </div>
       </div>
     </div>
   );
 }
-

@@ -6,7 +6,7 @@ from app.dependencies.db import get_db
 from app.models.team import TeamMember
 from app.models.user import User
 from app.schemas.team import TeamCreate, TeamJoin
-from app.services.team import create_team, join_team_by_code
+from app.services.team import create_team, join_team_by_code, list_my_teams
 
 router = APIRouter()
 
@@ -55,3 +55,12 @@ def join_team_endpoint(
             "members": [{"id": member.id, "email": member.email} for member in members],
         },
     }
+
+
+@router.get("/my")
+def list_my_teams_endpoint(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    items = list_my_teams(db, user=user)
+    return {"success": True, "data": {"items": items}}

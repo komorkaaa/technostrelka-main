@@ -4,10 +4,13 @@ import { useAuth } from "@/features/auth/model/useAuth";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import type { ApiError } from "@/shared/api/types";
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +25,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email.trim(), password);
+      toast.push({ kind: "success", message: "Вы вошли в аккаунт." });
       navigate("/", { replace: true });
     } catch (e2) {
       setError(e2 as ApiError);
@@ -34,8 +38,8 @@ export function LoginPage() {
     <div className="page">
       <div className="card">
         <div className="cardHeader">
-          <h1>Welcome back</h1>
-          <p className="muted">Sign in to continue</p>
+          <h1>Вход</h1>
+          <p className="muted">Войдите, чтобы продолжить</p>
         </div>
 
         <form className="form" onSubmit={onSubmit}>
@@ -44,32 +48,26 @@ export function LoginPage() {
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
           </label>
           <label className="label">
-            Password
+            Пароль
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              placeholder="Your password"
+              placeholder="Ваш пароль"
             />
           </label>
 
-          {error ? (
-            <div className="errorBox">
-              <div className="errorTitle">{error.code}</div>
-              <div className="errorMsg">{error.message}</div>
-            </div>
-          ) : null}
+          {error ? <ApiErrorBox error={error} /> : null}
 
           <Button type="submit" disabled={!canSubmit}>
-            {submitting ? "Signing in..." : "Sign in"}
+            {submitting ? "Входим..." : "Войти"}
           </Button>
         </form>
 
         <div className="cardFooter">
-          <span className="muted">No account?</span> <Link to="/register">Create one</Link>
+          <span className="muted">Нет аккаунта?</span> <Link to="/register">Зарегистрироваться</Link>
         </div>
       </div>
     </div>
   );
 }
-

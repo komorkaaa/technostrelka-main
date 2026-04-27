@@ -8,7 +8,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (status === "loading") {
     return (
       <div className="page">
-        <Spinner label="Loading session" />
+        <Spinner label="Проверяем сессию…" />
       </div>
     );
   }
@@ -19,4 +19,3 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
