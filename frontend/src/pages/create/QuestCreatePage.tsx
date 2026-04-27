@@ -7,6 +7,8 @@ import { Select } from "@/shared/ui/Select";
 import { Textarea } from "@/shared/ui/Textarea";
 import type { CheckpointCreateRequest } from "@/entities/quest/model";
 import { MapPicker } from "@/shared/map/MapPicker";
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 function taskTypeLabel(t: CheckpointCreateRequest["task_type"]) {
   if (t === "codeword") return "Код-слово";
@@ -14,16 +16,8 @@ function taskTypeLabel(t: CheckpointCreateRequest["task_type"]) {
   return t;
 }
 
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
-
 export function QuestCreatePage() {
+  const toast = useToast();
   const [error, setError] = useState<ApiError | null>(null);
   const [questId, setQuestId] = useState<number | null>(null);
   const [status, setStatus] = useState<string>("draft");
@@ -73,6 +67,7 @@ export function QuestCreatePage() {
       });
       setQuestId(res.quest_id);
       setStatus(res.status);
+      toast.push({ kind: "success", message: "Черновик квеста создан." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -84,6 +79,7 @@ export function QuestCreatePage() {
     try {
       const res = await questApi.uploadCover(questId, coverFile);
       setCoverPath(res.cover_path);
+      toast.push({ kind: "success", message: "Обложка загружена." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -112,6 +108,7 @@ export function QuestCreatePage() {
       }
       await questApi.addCheckpoint(questId, payload);
       setCheckpoints((prev) => [...prev, payload]);
+      toast.push({ kind: "success", message: "Точка добавлена." });
       const n = checkpoints.length + 2;
       setCpTitle(`Точка ${n}`);
       setCpTaskText("");
@@ -133,6 +130,7 @@ export function QuestCreatePage() {
     try {
       const res = await questApi.submit(questId);
       setStatus(res.status);
+      toast.push({ kind: "info", message: "Квест отправлен на модерацию." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -145,7 +143,7 @@ export function QuestCreatePage() {
         <p className="muted">Черновик → добавьте точки → отправьте на модерацию.</p>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       <div className="grid2">
         <div className="card" style={{ width: "100%" }}>

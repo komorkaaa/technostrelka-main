@@ -14,15 +14,8 @@ import { Textarea } from "@/shared/ui/Textarea";
 import { complaintApi } from "@/entities/complaint/api";
 import { moderationApi } from "@/entities/moderation/api";
 import { QuestMap } from "@/shared/map/QuestMap";
-
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 function taskTypeLabel(t: QuestCheckpoint["task_type"]) {
   if (t === "codeword") return "Код-слово";
@@ -35,6 +28,7 @@ export function QuestDetailsPage() {
   const questId = Number(id);
   const nav = useNavigate();
   const { status, user } = useAuth();
+  const toast = useToast();
 
   const [quest, setQuest] = useState<QuestDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +81,7 @@ export function QuestDetailsPage() {
     setError(null);
     try {
       const run = await runApi.start({ quest_id: quest.id, mode: "solo" });
+      toast.push({ kind: "success", message: "Прохождение начато." });
       nav(`/runs/${run.id}`);
     } catch (e) {
       setError(e as ApiError);
@@ -98,11 +93,12 @@ export function QuestDetailsPage() {
     setError(null);
     const tid = Number(teamId);
     if (!tid) {
-      setError({ status: 0, code: "TEAM_REQUIRED", message: "Select a team" });
+      setError({ status: 0, code: "TEAM_REQUIRED", message: "Выберите команду" });
       return;
     }
     try {
       const run = await runApi.start({ quest_id: quest.id, mode: "team", team_id: tid });
+      toast.push({ kind: "success", message: "Командное прохождение начато." });
       nav(`/runs/${run.id}`);
     } catch (e) {
       setError(e as ApiError);
@@ -121,6 +117,7 @@ export function QuestDetailsPage() {
       const res = await complaintApi.create(payload as any);
       setComplaintResult(`Жалоба отправлена (#${res.id})`);
       setComplaintReason("");
+      toast.push({ kind: "success", message: "Жалоба отправлена." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -131,6 +128,7 @@ export function QuestDetailsPage() {
     setError(null);
     try {
       await moderationApi.hideQuest(quest.id);
+      toast.push({ kind: "info", message: "Квест скрыт." });
       nav("/");
     } catch (e) {
       setError(e as ApiError);
@@ -154,7 +152,7 @@ export function QuestDetailsPage() {
         <div className="cardHeader">
           <h1>Квест</h1>
         </div>
-        <ErrorBox error={error} />
+        <ApiErrorBox error={error} />
         <div className="hint">
           <Link to="/">Назад к ленте</Link>
         </div>
@@ -188,7 +186,7 @@ export function QuestDetailsPage() {
           <span className="pill">Точек: {quest.checkpoints.length}</span>
         </div>
         {user?.role === "moderator" && (
-          <Button className="btn secondary" onClick={hideQuest}>
+          <Button variant="secondary" size="sm" onClick={hideQuest}>
             Скрыть
           </Button>
         )}
@@ -204,11 +202,11 @@ export function QuestDetailsPage() {
         )}
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       <div className="cardFooter" style={{ justifyContent: "space-between" }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button onClick={startSolo} disabled={!canStart}>
+          <Button onClick={startSolo} disabled={!canStart} size="lg">
             Начать соло
           </Button>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -220,7 +218,7 @@ export function QuestDetailsPage() {
                 </option>
               ))}
             </Select>
-            <Button onClick={startTeam} disabled={!canStart}>
+            <Button onClick={startTeam} disabled={!canStart} size="lg" variant="secondary">
               Начать командой
             </Button>
           </div>

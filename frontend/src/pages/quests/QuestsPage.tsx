@@ -7,15 +7,7 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { Select } from "@/shared/ui/Select";
 import { Spinner } from "@/shared/ui/Spinner";
-
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 
 export function QuestsPage() {
   const [items, setItems] = useState<QuestListItem[]>([]);
@@ -123,7 +115,7 @@ export function QuestsPage() {
         </div>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
       {loading ? (
         <div className="spinnerWrap" style={{ padding: 16 }}>
           <Spinner />

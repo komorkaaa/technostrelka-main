@@ -5,18 +5,12 @@ import { Select } from "@/shared/ui/Select";
 import { Button } from "@/shared/ui/Button";
 import type { ApiError } from "@/shared/api/types";
 import { userApi } from "@/entities/user/api";
-
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 export function ProfilePage() {
   const { user, refreshSession } = useAuth();
+  const toast = useToast();
   const [nickname, setNickname] = useState(user?.nickname ?? "");
   const [ageGroup, setAgeGroup] = useState<"14-15" | "16-17" | "">((user?.age_group as any) ?? "");
   const [saving, setSaving] = useState(false);
@@ -31,6 +25,7 @@ export function ProfilePage() {
     try {
       await userApi.patchMe({ nickname: nickname.trim(), age_group: ageGroup as any });
       await refreshSession();
+      toast.push({ kind: "success", message: "Профиль сохранён." });
     } catch (e) {
       setError(e as ApiError);
     } finally {
@@ -45,7 +40,7 @@ export function ProfilePage() {
         <p className="muted">Для MVP нужны никнейм и возрастная группа.</p>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       <div className="form">
         <label className="label">

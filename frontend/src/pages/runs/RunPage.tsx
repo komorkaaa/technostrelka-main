@@ -10,15 +10,8 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { Select } from "@/shared/ui/Select";
 import { QuestMap } from "@/shared/map/QuestMap";
-
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 function parseProgress(progress: string) {
   const [a, b] = progress.split("/");
@@ -46,6 +39,7 @@ export function RunPage() {
   const { id } = useParams();
   const runId = Number(id);
   const nav = useNavigate();
+  const toast = useToast();
 
   const [run, setRun] = useState<RunState | null>(null);
   const [quest, setQuest] = useState<QuestDetails | null>(null);
@@ -99,10 +93,14 @@ export function RunPage() {
     setError(null);
     try {
       if (run.current_checkpoint.task_type === "codeword") {
-        await runApi.submit(runId, { codeword_answer: codeword });
+        const res = await runApi.submit(runId, { codeword_answer: codeword });
+        toast.push({ kind: res.correct ? "success" : "error", message: res.correct ? "Верно!" : "Неверно. Попробуйте ещё раз." });
+        if (res.status === "finished") toast.push({ kind: "success", message: "Квест завершён. Отличная работа!" });
         setCodeword("");
       } else {
-        await runApi.submit(runId, { quiz_selected_index: Number(quizIndex) });
+        const res = await runApi.submit(runId, { quiz_selected_index: Number(quizIndex) });
+        toast.push({ kind: res.correct ? "success" : "error", message: res.correct ? "Верно!" : "Неверный ответ. Попробуйте ещё раз." });
+        if (res.status === "finished") toast.push({ kind: "success", message: "Квест завершён. Отличная работа!" });
       }
       await reload();
     } catch (e) {
@@ -114,6 +112,7 @@ export function RunPage() {
     setError(null);
     try {
       await runApi.abandon(runId);
+      toast.push({ kind: "info", message: "Прохождение брошено." });
       nav("/");
     } catch (e) {
       setError(e as ApiError);
@@ -136,7 +135,7 @@ export function RunPage() {
         <div className="cardHeader">
           <h1>Прохождение</h1>
         </div>
-        <ErrorBox error={error} />
+        <ApiErrorBox error={error} />
         <div className="hint">
           <Link to="/">Назад</Link>
         </div>
@@ -155,7 +154,7 @@ export function RunPage() {
         </p>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       <div className="row">
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

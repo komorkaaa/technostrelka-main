@@ -4,10 +4,13 @@ import { useAuth } from "@/features/auth/model/useAuth";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import type { ApiError } from "@/shared/api/types";
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +25,7 @@ export function RegisterPage() {
     setError(null);
     try {
       await register(email.trim(), password);
+      toast.push({ kind: "success", message: "Аккаунт создан. Добро пожаловать!" });
       navigate("/", { replace: true });
     } catch (e2) {
       setError(e2 as ApiError);
@@ -53,12 +57,7 @@ export function RegisterPage() {
             />
           </label>
 
-          {error ? (
-            <div className="errorBox">
-              <div className="errorTitle">{error.code}</div>
-              <div className="errorMsg">{error.message}</div>
-            </div>
-          ) : null}
+          {error ? <ApiErrorBox error={error} /> : null}
 
           <Button type="submit" disabled={!canSubmit}>
             {submitting ? "Создаём..." : "Создать аккаунт"}

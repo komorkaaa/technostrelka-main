@@ -2,15 +2,7 @@ import { useEffect, useState } from "react";
 import type { ApiError } from "@/shared/api/types";
 import { leaderboardApi, type LeaderboardTeamItem } from "@/entities/leaderboard/api";
 import { Spinner } from "@/shared/ui/Spinner";
-
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 
 export function LeaderboardPage() {
   const [items, setItems] = useState<LeaderboardTeamItem[]>([]);
@@ -39,7 +31,7 @@ export function LeaderboardPage() {
         <p className="muted">Сумма очков за завершённые квесты (всё время).</p>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       {loading ? (
         <div className="spinnerWrap" style={{ padding: 18 }}>

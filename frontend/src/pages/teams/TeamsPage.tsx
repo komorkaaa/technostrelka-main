@@ -6,17 +6,11 @@ import { Input } from "@/shared/ui/Input";
 import { Textarea } from "@/shared/ui/Textarea";
 import { Button } from "@/shared/ui/Button";
 import { Spinner } from "@/shared/ui/Spinner";
-
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 export function TeamsPage() {
+  const toast = useToast();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
@@ -49,6 +43,7 @@ export function TeamsPage() {
       setName("");
       setDesc("");
       await reload();
+      toast.push({ kind: "success", message: "Команда создана." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -60,6 +55,7 @@ export function TeamsPage() {
       await teamApi.join(joinCode);
       setJoinCode("");
       await reload();
+      toast.push({ kind: "success", message: "Вы вступили в команду." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -72,7 +68,7 @@ export function TeamsPage() {
         <p className="muted">Создайте команду (2–6) или вступите по коду.</p>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       <div className="grid2">
         <div className="card" style={{ width: "100%" }}>

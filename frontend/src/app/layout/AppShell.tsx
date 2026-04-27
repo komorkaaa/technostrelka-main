@@ -13,7 +13,7 @@ export function AppShell() {
     <div className="shell">
       <header className="topbar">
         <Link className="brand" to="/">
-          Городские квесты
+          City Quests
         </Link>
         <nav className="nav">
           <NavLink to="/" className={navCls} end>

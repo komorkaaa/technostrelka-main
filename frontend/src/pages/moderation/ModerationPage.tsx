@@ -5,6 +5,8 @@ import { Spinner } from "@/shared/ui/Spinner";
 import { Button } from "@/shared/ui/Button";
 import { Textarea } from "@/shared/ui/Textarea";
 import { useAuth } from "@/features/auth/model/useAuth";
+import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { useToast } from "@/shared/ui/Toast";
 
 function complaintStatusLabel(s: string) {
   if (s === "new") return "новая";
@@ -12,17 +14,9 @@ function complaintStatusLabel(s: string) {
   return s;
 }
 
-function ErrorBox({ error }: { error: ApiError }) {
-  return (
-    <div className="errorBox">
-      <div className="errorTitle">{error.code}</div>
-      <div className="errorMsg">{error.message}</div>
-    </div>
-  );
-}
-
 export function ModerationPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const [quests, setQuests] = useState<ModerationQuestItem[]>([]);
   const [complaints, setComplaints] = useState<ComplaintItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +48,7 @@ export function ModerationPage() {
     try {
       await moderationApi.approveQuest(id);
       await reload();
+      toast.push({ kind: "success", message: "Квест опубликован." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -64,6 +59,7 @@ export function ModerationPage() {
     try {
       await moderationApi.rejectQuest(id, rejectReason[id] ?? "Небезопасно / некачественно");
       await reload();
+      toast.push({ kind: "info", message: "Квест отклонён." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -74,6 +70,7 @@ export function ModerationPage() {
     try {
       await moderationApi.resolveComplaint(id);
       await reload();
+      toast.push({ kind: "success", message: "Жалоба помечена обработанной." });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -97,7 +94,7 @@ export function ModerationPage() {
         <p className="muted">Проверка квестов и обработка жалоб.</p>
       </div>
 
-      {error && <ErrorBox error={error} />}
+      {error && <ApiErrorBox error={error} />}
 
       {loading ? (
         <div className="spinnerWrap" style={{ padding: 18 }}>
