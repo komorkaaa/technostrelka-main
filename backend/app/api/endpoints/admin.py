@@ -5,7 +5,7 @@ from app.dependencies.auth import get_current_moderator
 from app.dependencies.db import get_db
 from app.schemas.moderation import ModerationRejectRequest
 from app.schemas.user import AdminUserCreate, AdminUserRoleUpdate, AdminUserUpdate
-from app.services.quest import approve_quest, list_moderation_quests, reject_quest
+from app.services.quest import approve_quest, get_route_length_meters, list_moderation_quests, reject_quest
 from app.services.user import admin_create_user, admin_list_users, admin_set_user_role, admin_update_user
 
 router = APIRouter()
@@ -105,6 +105,7 @@ def list_quests_moderation_endpoint(
                     "city_area": quest.city_area,
                     "difficulty": quest.difficulty,
                     "duration_minutes": quest.duration_minutes,
+                    "route_length_meters": get_route_length_meters(db, quest.id),
                     "status": quest.status,
                     "created_at": quest.created_at,
                 }

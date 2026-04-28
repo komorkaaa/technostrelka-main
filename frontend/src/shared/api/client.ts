@@ -17,7 +17,14 @@ function toApiError(status: number, body: unknown): ApiError {
 
 async function parseEnvelope<T>(res: Response): Promise<T> {
   const text = await res.text();
-  const json = text ? JSON.parse(text) : null;
+  let json: unknown = null;
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = text;
+    }
+  }
 
   if (!res.ok) {
     throw toApiError(res.status, json);

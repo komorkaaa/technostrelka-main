@@ -12,6 +12,8 @@ export type RunState = {
   mode: string;
   status: string;
   score_total: number;
+  started_at?: string | null;
+  finished_at?: string | null;
   progress: string; // "2/5"
   current_checkpoint: null | {
     id: number;

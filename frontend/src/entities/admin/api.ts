@@ -15,6 +15,7 @@ export type AdminQuestItem = {
   city_area: string;
   difficulty: number;
   duration_minutes: number;
+  route_length_meters: number;
   status: string;
   created_at: string;
 };
