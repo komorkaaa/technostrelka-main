@@ -1,4 +1,5 @@
 let ymapsReadyPromise: Promise<any> | null = null;
+const YANDEX_SUGGEST_API_KEY = (import.meta as any).env?.VITE_YANDEX_SUGGEST_API_KEY ?? "";
 
 declare global {
   interface Window {
@@ -16,7 +17,12 @@ export function loadYMaps(): Promise<any> {
   if (!ymapsReadyPromise) {
     ymapsReadyPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "https://api-maps.yandex.ru/2.1/?lang=ru_RU";
+      const url = new URL("https://api-maps.yandex.ru/2.1/");
+      url.searchParams.set("lang", "ru_RU");
+      if (YANDEX_SUGGEST_API_KEY.trim()) {
+        url.searchParams.set("suggest_apikey", YANDEX_SUGGEST_API_KEY);
+      }
+      script.src = url.toString();
       script.async = true;
       script.onload = () => {
         if (!window.ymaps) {

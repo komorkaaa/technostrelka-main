@@ -9,6 +9,7 @@ import type { CheckpointCreateRequest } from "@/entities/quest/model";
 import { MapPicker } from "@/shared/map/MapPicker";
 import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 import { useToast } from "@/shared/ui/Toast";
+import { CitySuggestInput } from "@/shared/ui/CitySuggestInput";
 
 function taskTypeLabel(t: CheckpointCreateRequest["task_type"]) {
   if (t === "codeword") return "Код-слово";
@@ -172,7 +173,7 @@ export function QuestCreatePage() {
             </label>
             <label className="label">
               Район/город
-              <Input value={cityArea} onChange={(e) => setCityArea(e.target.value)} disabled={!!questId} />
+              <CitySuggestInput value={cityArea} onChange={setCityArea} disabled={!!questId} />
             </label>
             <div className="grid3">
               <label className="label">
