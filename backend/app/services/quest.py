@@ -8,10 +8,15 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache_delete
 from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.user import User
 from app.schemas.quest import QuestCheckpointCreate, QuestCreate
+
+
+def _invalidate_public_quest_cache(quest_id: int) -> None:
+    cache_delete(f"quest:{quest_id}:public:v1")
 
 
 def create_quest(db: Session, user: User, data: QuestCreate) -> Quest:
@@ -231,6 +236,7 @@ def approve_quest(db: Session, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -246,6 +252,7 @@ def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -262,6 +269,7 @@ def archive_quest(db: Session, user: User, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -276,6 +284,7 @@ def hide_quest(db: Session, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
