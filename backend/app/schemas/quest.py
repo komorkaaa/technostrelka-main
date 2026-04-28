@@ -12,6 +12,15 @@ class QuestCreate(BaseModel):
     rules: str | None = None
 
 
+class ModerationQuestUpdate(BaseModel):
+    title: str = Field(min_length=5, max_length=255)
+    description: str = Field(min_length=30)
+    city_area: str = Field(min_length=1, max_length=255)
+    difficulty: int = Field(ge=1, le=5)
+    duration_minutes: int = Field(gt=0)
+    rules: str | None = None
+
+
 class QuestCheckpointCreate(BaseModel):
     order_index: int = Field(gt=0)
     title: str = Field(min_length=1, max_length=255)

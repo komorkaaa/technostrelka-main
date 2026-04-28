@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from app.dependencies.auth import get_current_moderator
 from app.dependencies.db import get_db
 from app.schemas.moderation import ModerationRejectRequest
-from app.schemas.user import AdminUserCreate, AdminUserRoleUpdate
+from app.schemas.user import AdminUserCreate, AdminUserRoleUpdate, AdminUserUpdate
 from app.services.quest import approve_quest, list_moderation_quests, reject_quest
-from app.services.user import admin_create_user, admin_list_users, admin_set_user_role
+from app.services.user import admin_create_user, admin_list_users, admin_set_user_role, admin_update_user
 
 router = APIRouter()
 
@@ -64,6 +64,26 @@ def set_role_endpoint(
         "data": {
             "id": user.id,
             "email": user.email,
+            "role": user.role,
+        },
+    }
+
+
+@router.patch("/users/{user_id}")
+def update_user_endpoint(
+    user_id: int,
+    data: AdminUserUpdate,
+    db: Session = Depends(get_db),
+    moderator=Depends(get_current_moderator),
+):
+    user = admin_update_user(db, target_user_id=user_id, data=data, actor_user_id=moderator.id)
+    return {
+        "success": True,
+        "data": {
+            "id": user.id,
+            "email": user.email,
+            "nickname": user.nickname,
+            "age_group": user.age_group,
             "role": user.role,
         },
     }

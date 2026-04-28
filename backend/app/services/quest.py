@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.user import User
-from app.schemas.quest import QuestCheckpointCreate, QuestCreate
+from app.schemas.quest import ModerationQuestUpdate, QuestCheckpointCreate, QuestCreate
 
 
 def create_quest(db: Session, user: User, data: QuestCreate) -> Quest:
@@ -209,13 +209,51 @@ def get_published_quest_with_checkpoints(db: Session, quest_id: int) -> tuple[Qu
     return quest, checkpoints
 
 
-def list_moderation_quests(db: Session) -> list[Quest]:
+def list_moderation_quests(db: Session, statuses: list[str] | None = None) -> list[Quest]:
+    allowed_statuses = {"draft", "moderation", "published", "rejected", "hidden", "archived"}
+    filtered_statuses = [status for status in (statuses or ["moderation"]) if status in allowed_statuses]
+    if not filtered_statuses:
+        filtered_statuses = ["moderation"]
+
     return (
         db.query(Quest)
-        .filter(Quest.status == "moderation")
+        .filter(Quest.status.in_(filtered_statuses))
         .order_by(Quest.created_at.asc())
         .all()
     )
+
+
+def get_quest_with_checkpoints_for_moderation(db: Session, quest_id: int) -> tuple[Quest, list[QuestCheckpoint]]:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="РљРІРµСЃС‚ РЅРµ РЅР°Р№РґРµРЅ")
+
+    checkpoints = (
+        db.query(QuestCheckpoint)
+        .filter(QuestCheckpoint.quest_id == quest.id)
+        .order_by(QuestCheckpoint.order_index.asc())
+        .all()
+    )
+    return quest, checkpoints
+
+
+def update_quest_for_moderation(db: Session, quest_id: int, data: ModerationQuestUpdate) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="РљРІРµСЃС‚ РЅРµ РЅР°Р№РґРµРЅ")
+    if quest.status not in {"moderation", "hidden", "rejected"}:
+        raise HTTPException(status_code=409, detail="Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ РєРІРµСЃС‚ РЅР° РјРѕРґРµСЂР°С†РёРё, СЃРєСЂС‹С‚С‹Р№ РёР»Рё РѕС‚РєР»РѕРЅС‘РЅРЅС‹Р№")
+
+    quest.title = data.title.strip()
+    quest.description = data.description.strip()
+    quest.city_area = data.city_area.strip()
+    quest.difficulty = data.difficulty
+    quest.duration_minutes = data.duration_minutes
+    quest.rules = data.rules.strip() if data.rules else None
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
 
 
 def approve_quest(db: Session, quest_id: int) -> Quest:
