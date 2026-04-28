@@ -54,8 +54,8 @@ def admin_set_user_role(db: Session, target_user_id: int, role: str, actor_user_
     user = db.get(User, target_user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    if user.id == actor_user_id and role != "admin":
-        raise HTTPException(status_code=400, detail="Администратор не может понизить роль себе")
+    if user.id == actor_user_id and role != "moderator":
+        raise HTTPException(status_code=400, detail="Модератор не может понизить роль себе")
 
     user.role = role
     db.commit()

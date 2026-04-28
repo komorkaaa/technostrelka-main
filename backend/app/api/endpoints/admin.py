@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.dependencies.auth import get_current_admin
+from app.dependencies.auth import get_current_moderator
 from app.dependencies.db import get_db
 from app.schemas.moderation import ModerationRejectRequest
 from app.schemas.user import AdminUserCreate, AdminUserRoleUpdate
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/users")
 def list_users_endpoint(
     db: Session = Depends(get_db),
-    _admin=Depends(get_current_admin),
+    _moderator=Depends(get_current_moderator),
 ):
     users = admin_list_users(db)
     return {
@@ -38,7 +38,7 @@ def list_users_endpoint(
 def create_user_endpoint(
     data: AdminUserCreate,
     db: Session = Depends(get_db),
-    _admin=Depends(get_current_admin),
+    _moderator=Depends(get_current_moderator),
 ):
     user = admin_create_user(db, data=data)
     return {
@@ -56,9 +56,9 @@ def set_role_endpoint(
     user_id: int,
     data: AdminUserRoleUpdate,
     db: Session = Depends(get_db),
-    admin=Depends(get_current_admin),
+    moderator=Depends(get_current_moderator),
 ):
-    user = admin_set_user_role(db, target_user_id=user_id, role=data.role, actor_user_id=admin.id)
+    user = admin_set_user_role(db, target_user_id=user_id, role=data.role, actor_user_id=moderator.id)
     return {
         "success": True,
         "data": {
@@ -72,7 +72,7 @@ def set_role_endpoint(
 @router.get("/quests/moderation")
 def list_quests_moderation_endpoint(
     db: Session = Depends(get_db),
-    _admin=Depends(get_current_admin),
+    _moderator=Depends(get_current_moderator),
 ):
     quests = list_moderation_quests(db)
     return {
@@ -98,7 +98,7 @@ def list_quests_moderation_endpoint(
 def approve_quest_endpoint(
     quest_id: int,
     db: Session = Depends(get_db),
-    _admin=Depends(get_current_admin),
+    _moderator=Depends(get_current_moderator),
 ):
     quest = approve_quest(db, quest_id=quest_id)
     return {
@@ -115,7 +115,7 @@ def reject_quest_endpoint(
     quest_id: int,
     data: ModerationRejectRequest,
     db: Session = Depends(get_db),
-    _admin=Depends(get_current_admin),
+    _moderator=Depends(get_current_moderator),
 ):
     quest = reject_quest(db, quest_id=quest_id, reason=data.reason)
     return {

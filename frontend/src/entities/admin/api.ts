@@ -21,21 +21,21 @@ export type AdminQuestItem = {
 
 export const adminApi = {
   async listUsers() {
-    return api.get<{ items: AdminUserItem[] }>("/api/v1/admin/users");
+    return api.get<{ items: AdminUserItem[] }>("/api/v1/moderation-tools/users");
   },
   async createUser(data: { email: string; password: string; role: UserRole }) {
-    return api.post<{ id: number; email: string; role: UserRole }>("/api/v1/admin/users", data);
+    return api.post<{ id: number; email: string; role: UserRole }>("/api/v1/moderation-tools/users", data);
   },
   async setUserRole(userId: number, role: UserRole) {
-    return api.patch<{ id: number; email: string; role: UserRole }>(`/api/v1/admin/users/${userId}/role`, { role });
+    return api.patch<{ id: number; email: string; role: UserRole }>(`/api/v1/moderation-tools/users/${userId}/role`, { role });
   },
   async listModerationQuests() {
-    return api.get<{ items: AdminQuestItem[] }>("/api/v1/admin/quests/moderation");
+    return api.get<{ items: AdminQuestItem[] }>("/api/v1/moderation-tools/quests/moderation");
   },
   async approveQuest(id: number) {
-    return api.post<{ id: number; status: string }>(`/api/v1/admin/quests/${id}/approve`);
+    return api.post<{ id: number; status: string }>(`/api/v1/moderation-tools/quests/${id}/approve`);
   },
   async rejectQuest(id: number, reason: string) {
-    return api.post<{ id: number; status: string; reject_reason: string }>(`/api/v1/admin/quests/${id}/reject`, { reason });
+    return api.post<{ id: number; status: string; reject_reason: string }>(`/api/v1/moderation-tools/quests/${id}/reject`, { reason });
   },
 };

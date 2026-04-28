@@ -8,10 +8,9 @@ function navCls({ isActive }: { isActive: boolean }) {
 
 export function AppShell() {
   const { status, user, logout } = useAuth();
-  const isAdmin = user?.role === "admin";
   const isModerator = user?.role === "moderator";
-  const isRegularUser = status === "authenticated" && !isAdmin && !isModerator;
-  const homePath = isAdmin ? "/admin" : isModerator ? "/moderation" : "/";
+  const isAuthenticated = status === "authenticated";
+  const homePath = "/";
 
   return (
     <div className="shell">
@@ -30,7 +29,7 @@ export function AppShell() {
               </NavLink>
             </>
           )}
-          {isRegularUser && (
+          {isAuthenticated && (
             <>
               <NavLink to="/" className={navCls} end>
                 Квесты
@@ -49,16 +48,6 @@ export function AppShell() {
               </NavLink>
             </>
           )}
-          {isModerator && (
-            <NavLink to="/moderation" className={navCls}>
-              Модерация
-            </NavLink>
-          )}
-          {isAdmin && (
-            <NavLink to="/admin" className={navCls}>
-              Админ-панель
-            </NavLink>
-          )}
         </nav>
         <div className="topbarRight">
           {status !== "authenticated" ? (
@@ -68,6 +57,11 @@ export function AppShell() {
             </div>
           ) : (
             <div className="row" style={{ padding: 0 }}>
+              {isModerator && (
+                <Link to="/moderation">
+                  <Button variant="secondary">Окно модерации</Button>
+                </Link>
+              )}
               <div className="muted" style={{ fontSize: 13 }}>
                 {user?.nickname ? user.nickname : user?.email}
               </div>

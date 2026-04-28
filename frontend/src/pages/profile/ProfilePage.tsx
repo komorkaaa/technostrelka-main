@@ -9,7 +9,6 @@ import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 import { useToast } from "@/shared/ui/Toast";
 
 function roleLabel(role?: string | null) {
-  if (role === "admin") return "Администратор";
   if (role === "moderator") return "Модератор";
   return "Пользователь";
 }

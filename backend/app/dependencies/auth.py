@@ -32,12 +32,6 @@ def get_current_user(
 
 
 def get_current_moderator(user: User = Depends(get_current_user)):
-    if user.role not in {"moderator", "admin"}:
-        raise HTTPException(status_code=403, detail="Нужны права модератора или администратора")
-    return user
-
-
-def get_current_admin(user: User = Depends(get_current_user)):
-    if user.role != "admin":
-        raise HTTPException(status_code=403, detail="Нужны права администратора")
+    if user.role != "moderator":
+        raise HTTPException(status_code=403, detail="Нужны права модератора")
     return user

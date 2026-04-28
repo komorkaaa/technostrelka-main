@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 AgeGroup = Literal["10-11", "12-13", "14-15", "16-17", "18+"]
-UserRole = Literal["user", "moderator", "admin"]
+UserRole = Literal["user", "moderator"]
 
 class UserCreate(BaseModel):
     email: EmailStr
