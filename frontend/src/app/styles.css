@@ -268,48 +268,162 @@ a:hover {
   margin: 0 auto;
 }
 
-/* Mobile bottom nav */
-.mobileNav {
+/* Mobile burger + drawer */
+.burgerButton {
   display: none;
-}
-
-.mobileNavItem {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 2px;
-  padding: 8px 10px 10px;
-  color: var(--nav-text);
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
-  border: 1px solid transparent;
-  text-decoration: none;
-  min-width: 0;
-  transition:
-    color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 220ms ease,
-    border-color 220ms ease,
-    transform 140ms ease;
+  border: 1px solid var(--border);
+  background: var(--theme-toggle-bg);
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: transform 120ms ease, background-color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1),
+    border-color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.mobileNavItem:active {
+.burgerButton:hover {
+  background: var(--theme-toggle-bg-hover);
+}
+
+.burgerButton:active {
   transform: translateY(1px);
 }
 
-.mobileNavItem.active {
+.burgerButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.burgerIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: grid;
+  justify-items: end;
+}
+
+.drawerPanel {
+  height: 100%;
+  width: min(360px, 92vw);
+  background: var(--surface-strong);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 14px 12px 16px;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 12px;
+  animation: drawerIn 200ms ease-out both;
+}
+
+.drawerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.drawerTitle {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.drawerClose {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--ghost-bg);
   color: var(--text);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 0;
+  transition: background-color 160ms ease, transform 120ms ease;
+}
+
+.drawerClose:active {
+  transform: translateY(1px);
+}
+
+.drawerUser {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.drawerUserName {
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.drawerUserRole {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.drawerList {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.drawerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.drawerItem:hover {
   border-color: rgba(125, 211, 252, 0.28);
+  background: var(--surface-soft-strong);
+  text-decoration: none;
+}
+
+.drawerItem:active {
+  transform: translateY(1px);
+}
+
+.drawerItem.active {
+  border-color: rgba(125, 211, 252, 0.35);
   background: rgba(125, 211, 252, 0.10);
 }
 
-.mobileNavLabel {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.drawerItem.danger {
+  border-color: rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.10);
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translate3d(16px, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
 }
 
 .grid2 {
@@ -1028,29 +1142,18 @@ input[type="file"] {
     width: 100%;
   }
 
-  /* Reduce header clutter on mobile: main nav moves to bottom */
+  /* Reduce header clutter on mobile: use burger + drawer */
   .nav {
     display: none;
   }
 
-  .content {
-    padding-bottom: calc(16px + var(--mobile-nav-h) + env(safe-area-inset-bottom));
+  .topbarRight {
+    display: none;
   }
 
-  .mobileNav {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    gap: 8px;
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
-    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface) 78%, transparent);
-    backdrop-filter: blur(12px);
-    height: var(--mobile-nav-h);
-    align-items: center;
+  .burgerButton {
+    display: inline-flex;
+    justify-self: end;
   }
 }
 
