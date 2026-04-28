@@ -18,6 +18,7 @@ export function TeamsPage() {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  const [leavingTeamId, setLeavingTeamId] = useState<number | null>(null);
 
   async function reload() {
     setLoading(true);
@@ -58,6 +59,25 @@ export function TeamsPage() {
       toast.push({ kind: "success", message: "Вы вступили в команду." });
     } catch (e) {
       setError(e as ApiError);
+    }
+  }
+
+  async function leave(team: Team) {
+    setError(null);
+    setLeavingTeamId(team.id);
+    try {
+      const result = await teamApi.leave(team.id);
+      await reload();
+      toast.push({
+        kind: "success",
+        message: result.team_deleted
+          ? "Вы покинули команду. Команда удалена, так как участников не осталось."
+          : "Вы покинули команду.",
+      });
+    } catch (e) {
+      setError(e as ApiError);
+    } finally {
+      setLeavingTeamId(null);
     }
   }
 
@@ -133,6 +153,16 @@ export function TeamsPage() {
                   {t.description}
                 </div>
               )}
+              <div className="cardFooter" style={{ marginTop: 12, paddingInline: 0, paddingBottom: 0 }}>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => leave(t)}
+                  disabled={leavingTeamId === t.id}
+                >
+                  {leavingTeamId === t.id ? "Выходим..." : "Покинуть команду"}
+                </Button>
+              </div>
             </div>
           ))
         )}

@@ -11,5 +11,8 @@ export const teamApi = {
   async my() {
     return api.get<{ items: Team[] }>("/api/v1/teams/my");
   },
+  async leave(teamId: number) {
+    return api.post<{ team_deleted: boolean; team_id: number }>(`/api/v1/teams/${teamId}/leave`);
+  },
 };
 
