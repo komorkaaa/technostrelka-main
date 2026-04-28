@@ -323,7 +323,7 @@ export function QuestCreatePage() {
                 </div>
                 <span className="pill">{taskTypeLabel(cp.task_type)}</span>
               </div>
-              <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+              <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                 {cp.task_text}
               </div>
               <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
