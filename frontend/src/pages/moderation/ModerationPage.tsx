@@ -245,8 +245,8 @@ export function ModerationPage() {
           <Spinner />
         </div>
       ) : (
-        <div className="grid2">
-          <div className="card" style={{ width: "100%" }}>
+        <div className="grid2 moderationGrid">
+          <div className="card moderationPanel" style={{ width: "100%" }}>
             <div className="cardHeader">
               <h1 style={{ fontSize: 18 }}>Пользователи</h1>
             </div>
@@ -273,7 +273,7 @@ export function ModerationPage() {
             </div>
           </div>
 
-          <div className="card" style={{ width: "100%" }}>
+          <div className="card moderationPanel" style={{ width: "100%" }}>
             <div className="cardHeader">
               <h1 style={{ fontSize: 18 }}>Квесты</h1>
             </div>
@@ -296,7 +296,7 @@ export function ModerationPage() {
             </div>
           </div>
 
-          <div className="card" style={{ width: "100%" }}>
+          <div className="card moderationPanel" style={{ width: "100%" }}>
             <div className="cardHeader">
               <h1 style={{ fontSize: 18 }}>Скрытые квесты</h1>
             </div>
@@ -316,7 +316,7 @@ export function ModerationPage() {
             </div>
           </div>
 
-          <div className="card" style={{ width: "100%" }}>
+          <div className="card moderationPanel" style={{ width: "100%" }}>
             <div className="cardHeader">
               <h1 style={{ fontSize: 18 }}>Жалобы</h1>
             </div>

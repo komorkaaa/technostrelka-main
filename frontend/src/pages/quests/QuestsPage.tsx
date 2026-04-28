@@ -87,6 +87,16 @@ export function QuestsPage() {
     );
   }
 
+  function resetFilters() {
+    setMinDuration("");
+    setMaxDuration("");
+    setPreset("");
+    setNearbyEnabled(false);
+    setRadiusM("2000");
+    setPos(null);
+    setPage(1);
+  }
+
   const hasPrevPage = page > 1;
   const showPagination = hasPrevPage || hasNextPage;
 
@@ -123,6 +133,11 @@ export function QuestsPage() {
             <option value="pro">Работают профи (4–5)</option>
           </Select>
         </label>
+        <div className="filtersResetWrap">
+          <Button className="btn secondary" onClick={resetFilters} style={{ height: 34, padding: "0 10px", fontSize: 12 }}>
+            Сбросить фильтры
+          </Button>
+        </div>
       </div>
 
       <div className="row" style={{ paddingTop: 0 }}>

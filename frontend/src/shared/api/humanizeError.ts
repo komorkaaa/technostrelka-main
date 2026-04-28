@@ -21,6 +21,17 @@ function tryExtractValidationDetails(details: unknown): string[] | null {
 
 function translateKnownMessage(message: string): string {
   const dict: Record<string, string> = {
+    "Failed to fetch": "Не удалось выполнить запрос к серверу",
+    "NetworkError when attempting to fetch resource.": "Ошибка сети при обращении к серверу",
+    "Load failed": "Не удалось загрузить данные",
+    "Network request failed": "Сетевой запрос завершился ошибкой",
+    "Bad Request": "Некорректный запрос",
+    Unauthorized: "Требуется авторизация",
+    Forbidden: "Доступ запрещён",
+    "Not Found": "Ресурс не найден",
+    "Internal Server Error": "Внутренняя ошибка сервера",
+    "Service Unavailable": "Сервис временно недоступен",
+    "Gateway Timeout": "Сервер не ответил вовремя",
     "Request failed": "Ошибка запроса",
     "Bad response": "Некорректный ответ сервера",
     "API error": "Ошибка API",
@@ -46,6 +57,7 @@ export function humanizeApiError(error: ApiError): { title: string; message: str
     TEAM_REQUIRED: { title: "Команда", message: translatedMessage || "Выберите команду." },
     GEO_UNAVAILABLE: { title: "Геолокация", message: translatedMessage || "Геолокация недоступна." },
     GEO_DENIED: { title: "Геолокация", message: translatedMessage || "Нет доступа к геолокации." },
+    NETWORK_ERROR: { title: "Сеть", message: translatedMessage || "Не удалось связаться с сервером." },
   };
   if (error.code in codeDict) {
     return codeDict[error.code]!;

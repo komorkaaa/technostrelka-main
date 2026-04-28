@@ -15,6 +15,7 @@ export function CitySuggestInput({
 }) {
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -64,16 +65,18 @@ export function CitySuggestInput({
             setOpen(true);
           }}
           onFocus={() => {
+            setFocused(true);
             if (suggestions.length > 0) setOpen(true);
           }}
           onBlur={() => {
+            setFocused(false);
             window.setTimeout(() => setOpen(false), 120);
           }}
           disabled={disabled}
           placeholder={placeholder}
           autoComplete="off"
         />
-        {!disabled && hasYandexSuggestApiKey() && open && (loading || suggestions.length > 0) && (
+        {!disabled && hasYandexSuggestApiKey() && focused && open && (loading || suggestions.length > 0) && (
           <div className="suggestDropdown">
             {loading && <div className="suggestItem muted">Ищем варианты…</div>}
             {!loading &&
