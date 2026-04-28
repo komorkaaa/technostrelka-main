@@ -29,6 +29,12 @@ export const adminApi = {
   async setUserRole(userId: number, role: UserRole) {
     return api.patch<{ id: number; email: string; role: UserRole }>(`/api/v1/moderation-tools/users/${userId}/role`, { role });
   },
+  async updateUser(
+    userId: number,
+    data: { nickname: string | null; age_group: "14-15" | "16-17" | null; role: UserRole },
+  ) {
+    return api.patch<AdminUserItem>(`/api/v1/moderation-tools/users/${userId}`, data);
+  },
   async listModerationQuests() {
     return api.get<{ items: AdminQuestItem[] }>("/api/v1/moderation-tools/quests/moderation");
   },

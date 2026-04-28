@@ -1,4 +1,6 @@
 :root {
+  --theme-wave-x: 50vw;
+  --theme-wave-y: 50vh;
   --bg0: #0b1020;
   --bg1: #111a33;
   --card: rgba(255, 255, 255, 0.06);
@@ -120,6 +122,7 @@ body {
   overflow-x: hidden;
   position: relative;
   isolation: isolate;
+  transition: background 520ms cubic-bezier(0.22, 1, 0.36, 1), color 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body::before {
@@ -134,6 +137,26 @@ body::before {
     radial-gradient(650px 450px at 40% 80%, var(--glow-soft-c), transparent 60%);
   filter: blur(10px);
   animation: bgFloat 12s ease-in-out infinite alternate;
+  transition: background 540ms cubic-bezier(0.22, 1, 0.36, 1), filter 540ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: var(--theme-wave-x);
+  top: var(--theme-wave-y);
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  z-index: 999;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(125, 211, 252, 0.26) 35%, rgba(167, 139, 250, 0.1) 70%, rgba(167, 139, 250, 0) 100%);
+  opacity: 0;
+}
+
+body.theme-wave-active::after {
+  animation: themeWave 820ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes bgFloat {
@@ -142,6 +165,20 @@ body::before {
   }
   to {
     transform: translate3d(2.5%, -2%, 0) scale(1.05);
+  }
+}
+
+@keyframes themeWave {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(180);
   }
 }
 
@@ -185,6 +222,7 @@ a:hover {
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   backdrop-filter: blur(10px);
+  transition: background-color 420ms cubic-bezier(0.22, 1, 0.36, 1), border-color 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .brand {
@@ -205,6 +243,8 @@ a:hover {
   padding: 8px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
+  transition: color 360ms cubic-bezier(0.22, 1, 0.36, 1), border-color 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .navLink:hover {
   text-decoration: none;
@@ -262,6 +302,8 @@ a:hover {
   font-size: 12px;
   max-width: 100%;
   min-width: 0;
+  transition: background-color 360ms cubic-bezier(0.22, 1, 0.36, 1), border-color 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* legacy compatibility */
@@ -283,6 +325,8 @@ a:hover {
   overflow-wrap: anywhere;
   margin-inline: auto;
   animation: fadeUp 240ms ease-out both;
+  transition: background-color 420ms cubic-bezier(0.22, 1, 0.36, 1), border-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .card.wide {
@@ -331,7 +375,8 @@ h1 {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease,
+    background-color 360ms cubic-bezier(0.22, 1, 0.36, 1), color 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 input[type="file"] {
@@ -660,6 +705,71 @@ input[type="file"] {
   flex: none;
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
+  transition: background-color 420ms cubic-bezier(0.22, 1, 0.36, 1), color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modalCard {
+  width: min(560px, 100%);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  animation: fadeUp 180ms ease-out both;
+  transition: background-color 420ms cubic-bezier(0.22, 1, 0.36, 1), border-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.usersModalCard {
+  width: min(980px, 100%);
+}
+
+.usersModalGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+.usersModalList {
+  display: grid;
+  gap: 8px;
+  max-height: 56vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.usersModalListItem {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 12px;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 220ms ease, background-color 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.usersModalListItem.active {
+  border-color: rgba(125, 211, 252, 0.4);
+  background: var(--surface-soft-strong);
+}
+
+@media (min-width: 900px) {
+  .usersModalGrid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
 }
 
 .themeToggle:hover {

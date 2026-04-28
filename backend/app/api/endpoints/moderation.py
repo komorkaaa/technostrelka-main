@@ -4,9 +4,17 @@ from sqlalchemy.orm import Session
 from app.dependencies.auth import get_current_moderator
 from app.dependencies.db import get_db
 from app.schemas.complaint import ComplaintResolveRequest
+from app.schemas.quest import ModerationQuestUpdate
 from app.schemas.moderation import ModerationRejectRequest
 from app.services.complaint import list_complaints, resolve_complaint
-from app.services.quest import approve_quest, hide_quest, list_moderation_quests, reject_quest
+from app.services.quest import (
+    approve_quest,
+    get_quest_with_checkpoints_for_moderation,
+    hide_quest,
+    list_moderation_quests,
+    reject_quest,
+    update_quest_for_moderation,
+)
 
 router = APIRouter()
 
@@ -85,6 +93,72 @@ def hide_quest_endpoint(
         "data": {
             "id": quest.id,
             "status": quest.status,
+        },
+    }
+
+
+@router.get("/quests/{quest_id}")
+def get_quest_for_moderation_endpoint(
+    quest_id: int,
+    db: Session = Depends(get_db),
+    _moderator=Depends(get_current_moderator),
+):
+    quest, checkpoints = get_quest_with_checkpoints_for_moderation(db, quest_id=quest_id)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "author_user_id": quest.author_user_id,
+            "title": quest.title,
+            "description": quest.description,
+            "city_area": quest.city_area,
+            "difficulty": quest.difficulty,
+            "duration_minutes": quest.duration_minutes,
+            "rules": quest.rules,
+            "status": quest.status,
+            "reject_reason": quest.reject_reason,
+            "created_at": quest.created_at,
+            "updated_at": quest.updated_at,
+            "checkpoints": [
+                {
+                    "id": checkpoint.id,
+                    "order_index": checkpoint.order_index,
+                    "title": checkpoint.title,
+                    "lat": checkpoint.lat,
+                    "lon": checkpoint.lon,
+                    "task_type": checkpoint.task_type,
+                    "task_text": checkpoint.task_text,
+                    "quiz_question": checkpoint.quiz_question,
+                    "quiz_options": checkpoint.quiz_options,
+                    "hint": checkpoint.hint,
+                    "safety_rules": checkpoint.safety_rules,
+                }
+                for checkpoint in checkpoints
+            ],
+        },
+    }
+
+
+@router.patch("/quests/{quest_id}")
+def update_quest_for_moderation_endpoint(
+    quest_id: int,
+    data: ModerationQuestUpdate,
+    db: Session = Depends(get_db),
+    _moderator=Depends(get_current_moderator),
+):
+    quest = update_quest_for_moderation(db, quest_id=quest_id, data=data)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "title": quest.title,
+            "description": quest.description,
+            "city_area": quest.city_area,
+            "difficulty": quest.difficulty,
+            "duration_minutes": quest.duration_minutes,
+            "rules": quest.rules,
+            "status": quest.status,
+            "updated_at": quest.updated_at,
         },
     }
 

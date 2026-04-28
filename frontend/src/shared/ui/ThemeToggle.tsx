@@ -1,4 +1,5 @@
 import { useTheme } from "@/app/providers/ThemeProvider";
+import type { MouseEvent } from "react";
 
 type ThemeToggleProps = {
   className?: string;
@@ -37,11 +38,29 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
   const classes = ["themeToggle", className].filter(Boolean).join(" ");
 
+  function runThemeWave(event: MouseEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const root = document.documentElement;
+    root.style.setProperty("--theme-wave-x", `${x}px`);
+    root.style.setProperty("--theme-wave-y", `${y}px`);
+    document.body.classList.remove("theme-wave-active");
+    void document.body.offsetWidth;
+    document.body.classList.add("theme-wave-active");
+    window.setTimeout(() => {
+      document.body.classList.remove("theme-wave-active");
+    }, 850);
+  }
+
   return (
     <button
       type="button"
       className={classes}
-      onClick={toggleTheme}
+      onClick={(event) => {
+        runThemeWave(event);
+        toggleTheme();
+      }}
       aria-label={theme === "dark" ? "Переключить на светлую тему" : "Переключить на тёмную тему"}
       title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
     >

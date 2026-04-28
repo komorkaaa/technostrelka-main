@@ -57,3 +57,9 @@ class AdminUserCreate(BaseModel):
 
 class AdminUserRoleUpdate(BaseModel):
     role: UserRole
+
+
+class AdminUserUpdate(BaseModel):
+    nickname: str | None = Field(default=None, min_length=2, max_length=32)
+    age_group: AgeGroup | None = None
+    role: UserRole
