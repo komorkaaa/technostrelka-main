@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache_get_json, cache_set_json
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
 from app.schemas.quest import QuestCheckpointCreate, QuestCreate
@@ -15,6 +16,7 @@ from app.services.quest import (
 )
 
 router = APIRouter()
+QUEST_DETAILS_CACHE_TTL_SECONDS = 300
 
 
 @router.post("")
@@ -147,8 +149,13 @@ def get_quest_endpoint(
     quest_id: int,
     db: Session = Depends(get_db),
 ):
+    cache_key = f"quest:{quest_id}:public:v1"
+    cached = cache_get_json(cache_key)
+    if cached is not None:
+        return cached
+
     quest, checkpoints = get_published_quest_with_checkpoints(db, quest_id=quest_id)
-    return {
+    response = {
         "success": True,
         "data": {
             "id": quest.id,
@@ -179,3 +186,5 @@ def get_quest_endpoint(
             ],
         },
     }
+    cache_set_json(cache_key, response, QUEST_DETAILS_CACHE_TTL_SECONDS)
+    return response
