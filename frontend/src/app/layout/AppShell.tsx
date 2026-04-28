@@ -57,14 +57,14 @@ export function AppShell() {
             </div>
           ) : (
             <div className="row" style={{ padding: 0 }}>
-              {isModerator && (
-                <Link to="/moderation">
-                  <Button variant="secondary">Окно модерации</Button>
-                </Link>
-              )}
               <div className="muted" style={{ fontSize: 13 }}>
                 {user?.nickname ? user.nickname : user?.email}
               </div>
+              {isModerator && (
+                <Link to="/moderation">
+                  <Button className="moderationButton">Окно модератора</Button>
+                </Link>
+              )}
               <Button onClick={logout}>Выйти</Button>
             </div>
           )}

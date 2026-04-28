@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/Button";
 import type { ApiError } from "@/shared/api/types";
 import { userApi } from "@/entities/user/api";
 import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { useToast } from "@/shared/ui/Toast";
 
 function roleLabel(role?: string | null) {
@@ -14,11 +15,8 @@ function roleLabel(role?: string | null) {
 }
 
 function ageGroupLabel(v?: string | null) {
-  if (v === "10-11") return "10–11";
-  if (v === "12-13") return "12–13";
   if (v === "14-15") return "14–15";
   if (v === "16-17") return "16–17";
-  if (v === "18+") return "18+";
   return "не выбрано";
 }
 
@@ -26,7 +24,7 @@ export function ProfilePage() {
   const { user, refreshSession } = useAuth();
   const toast = useToast();
   const [nickname, setNickname] = useState(user?.nickname ?? "");
-  const [ageGroup, setAgeGroup] = useState<"10-11" | "12-13" | "14-15" | "16-17" | "18+" | "">((user?.age_group as any) ?? "");
+  const [ageGroup, setAgeGroup] = useState<"14-15" | "16-17" | "">((user?.age_group as "14-15" | "16-17" | null) ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const nicknameOk = nickname.trim().length >= 2;
@@ -39,7 +37,7 @@ export function ProfilePage() {
     setSaving(true);
     setError(null);
     try {
-      await userApi.patchMe({ nickname: nickname.trim(), age_group: ageGroup as any });
+      await userApi.patchMe({ nickname: nickname.trim(), age_group: ageGroup || null });
       await refreshSession();
       toast.push({ kind: "success", message: "Профиль сохранён." });
     } catch (e) {
@@ -96,25 +94,25 @@ export function ProfilePage() {
 
             <div className="grid3" style={{ alignItems: "stretch" }}>
               <div className="card" style={{ width: "100%", padding: 12 }}>
-                <div className="muted" style={{ fontSize: 12 }}>
-                  ID
-                </div>
-                <div className="mono" style={{ fontWeight: 800 }}>
-                  {user?.id ?? "—"}
-                </div>
+                <div className="muted" style={{ fontSize: 12 }}>ID</div>
+                <div className="mono" style={{ fontWeight: 800 }}>{user?.id ?? "—"}</div>
               </div>
               <div className="card" style={{ width: "100%", padding: 12 }}>
-                <div className="muted" style={{ fontSize: 12 }}>
-                  Возраст
-                </div>
+                <div className="muted" style={{ fontSize: 12 }}>Возраст</div>
                 <div style={{ fontWeight: 800 }}>{ageGroupLabel(user?.age_group ?? null)}</div>
               </div>
               <div className="card" style={{ width: "100%", padding: 12 }}>
-                <div className="muted" style={{ fontSize: 12 }}>
-                  Статус
-                </div>
+                <div className="muted" style={{ fontSize: 12 }}>Статус</div>
                 <div style={{ fontWeight: 800 }}>Активен</div>
               </div>
+            </div>
+
+            <div className="profileThemePanel">
+              <div>
+                <div className="profileThemeTitle">Тема интерфейса</div>
+                <div className="muted" style={{ fontSize: 13 }}>Переключай светлую и тёмную тему одним нажатием.</div>
+              </div>
+              <ThemeToggle className="themeToggleProfile" />
             </div>
 
             <div className="hint">Никнейм и возрастная группа используются для команд и рейтинга.</div>
@@ -124,9 +122,7 @@ export function ProfilePage() {
         <div className="card" style={{ width: "100%" }}>
           <div className="cardHeader">
             <h1 style={{ fontSize: 18 }}>Настройки профиля</h1>
-            <p className="muted" style={{ margin: 0 }}>
-              Заполни данные — это займёт минуту.
-            </p>
+            <p className="muted" style={{ margin: 0 }}>Заполни данные, это займёт минуту.</p>
           </div>
 
           <div className="form">
@@ -138,13 +134,10 @@ export function ProfilePage() {
 
             <label className="label">
               Возрастная группа
-              <Select value={ageGroup} onChange={(e) => setAgeGroup(e.target.value as any)}>
+              <Select value={ageGroup} onChange={(e) => setAgeGroup(e.target.value as "14-15" | "16-17" | "")}>
                 <option value="">Выберите…</option>
-                <option value="10-11">10–11</option>
-                <option value="12-13">12–13</option>
                 <option value="14-15">14–15</option>
                 <option value="16-17">16–17</option>
-                <option value="18+">18+</option>
               </Select>
             </label>
             {!ageOk && <div className="hint">Выбери возрастную группу.</div>}

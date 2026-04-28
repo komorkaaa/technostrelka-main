@@ -5,6 +5,7 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import type { ApiError } from "@/shared/api/types";
 import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { useToast } from "@/shared/ui/Toast";
 
 export function LoginPage() {
@@ -37,9 +38,12 @@ export function LoginPage() {
   return (
     <div className="page">
       <div className="card">
-        <div className="cardHeader">
-          <h1>Вход</h1>
-          <p className="muted">Войдите, чтобы продолжить</p>
+        <div className="cardHeader authCardHeader">
+          <div>
+            <h1>Вход</h1>
+            <p className="muted">Войдите, чтобы продолжить</p>
+          </div>
+          <ThemeToggle className="themeToggleCompact" />
         </div>
 
         <form className="form" onSubmit={onSubmit}>
@@ -49,12 +53,7 @@ export function LoginPage() {
           </label>
           <label className="label">
             Пароль
-            <Input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              placeholder="Ваш пароль"
-            />
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Ваш пароль" />
           </label>
 
           {error ? <ApiErrorBox error={error} /> : null}
