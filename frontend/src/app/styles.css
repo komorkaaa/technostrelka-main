@@ -491,6 +491,45 @@ button.listCard {
   gap: 14px;
 }
 
+.moderationGrid {
+  width: 100%;
+}
+
+.moderationPanel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.moderationPanel .cardHeader {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.moderationPanel .cardHeader h1 {
+  line-height: 1.2;
+}
+
+.moderationPanel .form {
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.moderationPanel .label,
+.moderationPanel .input,
+.moderationPanel .selectField,
+.moderationPanel .selectTrigger,
+.moderationPanel .btn {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.moderationPanel .hint {
+  margin: 0;
+}
+
 .grid3 {
   display: grid;
   grid-template-columns: 1fr;
@@ -505,6 +544,30 @@ button.listCard {
   .grid3 {
     grid-template-columns: 1fr 1fr 1fr;
     align-items: end;
+  }
+}
+
+@media (max-width: 720px) {
+  .moderationGrid {
+    gap: 10px;
+  }
+
+  .moderationPanel {
+    padding: 14px 12px 12px;
+  }
+
+  .moderationPanel .cardHeader {
+    min-height: auto;
+    padding: 4px 4px 8px;
+  }
+
+  .moderationPanel .form,
+  .moderationPanel .label {
+    min-width: 0;
+  }
+
+  .moderationPanel .btn {
+    width: 100%;
   }
 }
 
