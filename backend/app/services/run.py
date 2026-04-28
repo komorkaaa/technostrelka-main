@@ -283,3 +283,46 @@ def leaderboard_teams(db: Session) -> list[dict]:
         }
         for row in rows
     ]
+
+
+def leaderboard_team_details(db: Session, team_id: int) -> dict:
+    team = db.get(Team, team_id)
+    if not team:
+        raise HTTPException(status_code=404, detail="Команда не найдена")
+
+    score_row = (
+        db.query(
+            func.sum(RunSession.score_total).label("score_total"),
+            func.count(RunSession.id).label("finished_runs"),
+        )
+        .filter(
+            RunSession.mode == "team",
+            RunSession.status == "finished",
+            RunSession.team_id == team_id,
+        )
+        .first()
+    )
+
+    members = (
+        db.query(User, TeamMember.role)
+        .join(TeamMember, TeamMember.user_id == User.id)
+        .filter(TeamMember.team_id == team_id)
+        .order_by(TeamMember.joined_at.asc())
+        .all()
+    )
+
+    return {
+        "team_id": team.id,
+        "team_name": team.name,
+        "score_total": int((score_row.score_total if score_row else 0) or 0),
+        "finished_runs": int((score_row.finished_runs if score_row else 0) or 0),
+        "members": [
+            {
+                "id": user.id,
+                "email": user.email,
+                "nickname": user.nickname,
+                "role": role,
+            }
+            for user, role in members
+        ],
+    }

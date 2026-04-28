@@ -44,8 +44,9 @@ export type ComplaintItem = {
 };
 
 export const moderationApi = {
-  async listQuests() {
-    return api.get<{ items: ModerationQuestItem[] }>("/api/v1/moderation/quests");
+  async listQuests(statuses: string[] = ["moderation", "hidden"]) {
+    const query = statuses.length > 0 ? `?statuses=${encodeURIComponent(statuses.join(","))}` : "";
+    return api.get<{ items: ModerationQuestItem[] }>(`/api/v1/moderation/quests${query}`);
   },
   async approveQuest(id: number) {
     return api.post<{ id: number; status: string; published_at?: string | null }>(`/api/v1/moderation/quests/${id}/approve`);
@@ -55,6 +56,9 @@ export const moderationApi = {
   },
   async hideQuest(id: number) {
     return api.post<{ id: number; status: string }>(`/api/v1/moderation/quests/${id}/hide`);
+  },
+  async unhideQuest(id: number) {
+    return api.post<{ id: number; status: string }>(`/api/v1/moderation/quests/${id}/unhide`);
   },
   async getQuest(id: number) {
     return api.get<ModerationQuestDetails>(`/api/v1/moderation/quests/${id}`);

@@ -13,23 +13,23 @@ import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 import { useToast } from "@/shared/ui/Toast";
 import { UsersModerationModal } from "@/pages/moderation/UsersModerationModal";
 import { QuestsModerationModal } from "@/pages/moderation/QuestsModerationModal";
-
-function complaintStatusLabel(s: string) {
-  if (s === "new") return "новая";
-  if (s === "handled") return "обработана";
-  return s;
-}
+import { ComplaintsModerationModal } from "@/pages/moderation/ComplaintsModerationModal";
+import { QuestDetailsModerationModal } from "@/pages/moderation/QuestDetailsModerationModal";
 
 export function ModerationPage() {
   const { user } = useAuth();
   const toast = useToast();
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [quests, setQuests] = useState<ModerationQuestItem[]>([]);
+  const [hiddenQuests, setHiddenQuests] = useState<ModerationQuestItem[]>([]);
   const [complaints, setComplaints] = useState<ComplaintItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [showQuestsModal, setShowQuestsModal] = useState(false);
+  const [showComplaintsModal, setShowComplaintsModal] = useState(false);
+  const [showQuestDetailsModal, setShowQuestDetailsModal] = useState(false);
+  const [questsModalType, setQuestsModalType] = useState<"moderation" | "hidden">("moderation");
   const [usersModalInitialUserId, setUsersModalInitialUserId] = useState<number | null>(null);
 
   const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
@@ -50,9 +50,15 @@ export function ModerationPage() {
     setLoading(true);
     setError(null);
     try {
-      const [u, q, c] = await Promise.all([adminApi.listUsers(), moderationApi.listQuests(), moderationApi.listComplaints()]);
+      const [u, qModeration, qHidden, c] = await Promise.all([
+        adminApi.listUsers(),
+        moderationApi.listQuests(["moderation"]),
+        moderationApi.listQuests(["hidden"]),
+        moderationApi.listComplaints(),
+      ]);
       setUsers(u.items);
-      setQuests(q.items);
+      setQuests(qModeration.items);
+      setHiddenQuests(qHidden.items);
       setComplaints(c.items);
     } catch (e) {
       setError(e as ApiError);
@@ -77,25 +83,7 @@ export function ModerationPage() {
       setQuestEditDifficulty(String(quest.difficulty));
       setQuestEditDuration(String(quest.duration_minutes));
       setQuestEditRules(quest.rules ?? "");
-    } catch (e) {
-      setError(e as ApiError);
-    }
-  }
-
-  async function saveQuestDetails() {
-    if (!selectedQuestId) return;
-    setError(null);
-    try {
-      await moderationApi.updateQuest(selectedQuestId, {
-        title: questEditTitle.trim(),
-        description: questEditDescription.trim(),
-        city_area: questEditCityArea.trim(),
-        difficulty: Number(questEditDifficulty),
-        duration_minutes: Number(questEditDuration),
-        rules: questEditRules.trim() ? questEditRules.trim() : null,
-      });
-      await Promise.all([reload(), loadQuestDetails(selectedQuestId)]);
-      toast.push({ kind: "success", message: "Данные квеста обновлены." });
+      setShowQuestDetailsModal(true);
     } catch (e) {
       setError(e as ApiError);
     }
@@ -104,10 +92,20 @@ export function ModerationPage() {
   async function approve(id: number) {
     setError(null);
     try {
+      if (selectedQuestId === id) {
+        await moderationApi.updateQuest(id, {
+          title: questEditTitle.trim(),
+          description: questEditDescription.trim(),
+          city_area: questEditCityArea.trim(),
+          difficulty: Number(questEditDifficulty),
+          duration_minutes: Number(questEditDuration),
+          rules: questEditRules.trim() ? questEditRules.trim() : null,
+        });
+      }
       await moderationApi.approveQuest(id);
       await reload();
       if (selectedQuestId === id) {
-        setSelectedQuestId(null);
+        await loadQuestDetails(id);
       }
       toast.push({ kind: "success", message: "Квест опубликован." });
     } catch (e) {
@@ -121,6 +119,7 @@ export function ModerationPage() {
       await moderationApi.rejectQuest(id, rejectReason[id] ?? "Небезопасно / некачественно");
       await reload();
       if (selectedQuestId === id) {
+        setShowQuestDetailsModal(false);
         setSelectedQuestId(null);
       }
       toast.push({ kind: "info", message: "Квест отклонён." });
@@ -140,12 +139,29 @@ export function ModerationPage() {
     }
   }
 
-  async function hideByComplaints(questId: number) {
+  async function hideQuest(questId: number) {
     setError(null);
     try {
       await moderationApi.hideQuest(questId);
       await reload();
+      if (selectedQuestId === questId) {
+        await loadQuestDetails(questId);
+      }
       toast.push({ kind: "info", message: `Квест ${questId} скрыт.` });
+    } catch (e) {
+      setError(e as ApiError);
+    }
+  }
+
+  async function unhideQuest(questId: number) {
+    setError(null);
+    try {
+      await moderationApi.unhideQuest(questId);
+      await reload();
+      if (selectedQuestId === questId) {
+        await loadQuestDetails(questId);
+      }
+      toast.push({ kind: "success", message: `Квест ${questId} снова видим.` });
     } catch (e) {
       setError(e as ApiError);
     }
@@ -194,16 +210,15 @@ export function ModerationPage() {
     }
   }
 
-  const complaintQuestStats = useMemo(() => {
-    const stats = new Map<number, number>();
+  const complaintQuestsCount = useMemo(() => {
+    const byQuest = new Set<number>();
     for (const c of complaints) {
-      if (!c.quest_id || c.status === "handled") continue;
-      stats.set(c.quest_id, (stats.get(c.quest_id) ?? 0) + 1);
+      if (!c.quest_id) continue;
+      byQuest.add(c.quest_id);
     }
-    return Array.from(stats.entries())
-      .map(([questId, count]) => ({ questId, count }))
-      .sort((a, b) => b.count - a.count);
+    return byQuest.size;
   }, [complaints]);
+  const activeQuestsForModal = questsModalType === "hidden" ? hiddenQuests : quests;
 
   if (user?.role !== "moderator") {
     return (
@@ -266,8 +281,37 @@ export function ModerationPage() {
               <div className="hint" style={{ marginTop: 0 }}>
                 На модерации сейчас: {quests.length} квестов.
               </div>
-              <Button variant="ghost" onClick={() => setShowQuestsModal(true)}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setQuestsModalType("moderation");
+                  setShowQuestsModal(true);
+                }}
+              >
                 Открыть окно всех квестов
+              </Button>
+              <div className="hint" style={{ marginTop: 0 }}>
+                В этом окне только квесты на модерации.
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ width: "100%" }}>
+            <div className="cardHeader">
+              <h1 style={{ fontSize: 18 }}>Скрытые квесты</h1>
+            </div>
+            <div className="form">
+              <div className="hint" style={{ marginTop: 0 }}>
+                Скрыто сейчас: {hiddenQuests.length} квестов.
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setQuestsModalType("hidden");
+                  setShowQuestsModal(true);
+                }}
+              >
+                Открыть окно скрытых квестов
               </Button>
             </div>
           </div>
@@ -277,54 +321,12 @@ export function ModerationPage() {
               <h1 style={{ fontSize: 18 }}>Жалобы</h1>
             </div>
             <div className="form" style={{ gap: 10 }}>
-              <h2 style={{ fontSize: 16, margin: 0 }}>Квесты с наибольшим числом жалоб</h2>
-              {complaintQuestStats.length === 0 ? (
-                <div className="hint">Активных жалоб на квесты нет.</div>
-              ) : (
-                complaintQuestStats.map((item) => (
-                  <div key={item.questId} className="card" style={{ width: "100%", padding: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                      <div style={{ fontWeight: 700 }}>Квест #{item.questId}</div>
-                      <span className="pill">Жалоб: {item.count}</span>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                      <Button variant="ghost" onClick={() => {
-                        void loadQuestDetails(item.questId);
-                        setShowQuestsModal(true);
-                      }}>
-                        Посмотреть квест
-                      </Button>
-                      <Button variant="secondary" onClick={() => hideByComplaints(item.questId)}>
-                        Скрыть квест
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-
-              {complaints.length === 0 ? (
-                <div className="hint">Жалоб нет.</div>
-              ) : (
-                complaints.map((c) => (
-                  <div key={c.id} className="card" style={{ width: "100%", padding: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                      <div style={{ fontWeight: 750 }}>#{c.id}</div>
-                      <span className="pill">{complaintStatusLabel(c.status)}</span>
-                    </div>
-                    <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
-                      {c.reason}
-                    </div>
-                    <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-                      Объект: {c.quest_id ? `квест ${c.quest_id}` : `точка ${c.checkpoint_id}`}
-                    </div>
-                    {c.status !== "handled" && (
-                      <Button variant="secondary" onClick={() => resolveComplaint(c.id)}>
-                        Пометить обработанной
-                      </Button>
-                    )}
-                  </div>
-                ))
-              )}
+              <Button variant="ghost" onClick={() => setShowComplaintsModal(true)}>
+                Открыть окно всех жалоб
+              </Button>
+              <div className="hint" style={{ marginTop: 0 }}>
+                Всего жалоб: {complaints.length}. Квестов с жалобами: {complaintQuestsCount}.
+              </div>
             </div>
           </div>
         </div>
@@ -341,29 +343,49 @@ export function ModerationPage() {
       />
       <QuestsModerationModal
         open={showQuestsModal}
-        quests={quests}
-        selectedQuestId={selectedQuestId}
+        mode={questsModalType}
+        quests={activeQuestsForModal}
+        onOpenQuest={(id) => void loadQuestDetails(id)}
+        onClose={() => setShowQuestsModal(false)}
+      />
+      <ComplaintsModerationModal
+        open={showComplaintsModal}
+        complaints={complaints}
+        onOpenQuest={(questId) => {
+          void loadQuestDetails(questId);
+          setShowQuestsModal(true);
+        }}
+        onResolve={(complaintId) => void resolveComplaint(complaintId)}
+        onClose={() => setShowComplaintsModal(false)}
+      />
+      <QuestDetailsModerationModal
+        open={showQuestDetailsModal}
         questDetails={questDetails}
-        rejectReason={rejectReason}
+        rejectReason={selectedQuestId ? (rejectReason[selectedQuestId] ?? "") : ""}
         questEditTitle={questEditTitle}
         questEditDescription={questEditDescription}
         questEditCityArea={questEditCityArea}
         questEditDifficulty={questEditDifficulty}
         questEditDuration={questEditDuration}
         questEditRules={questEditRules}
-        onOpenQuest={(id) => void loadQuestDetails(id)}
-        onSaveQuest={() => void saveQuestDetails()}
         onApprove={(id) => void approve(id)}
         onReject={(id) => void reject(id)}
-        onCloseDetails={() => setSelectedQuestId(null)}
-        onRejectReasonChange={(questId, reason) => setRejectReason((m) => ({ ...m, [questId]: reason }))}
+        onHide={(id) => void hideQuest(id)}
+        onUnhide={(id) => void unhideQuest(id)}
+        onRejectReasonChange={(reason) => {
+          if (!selectedQuestId) return;
+          setRejectReason((m) => ({ ...m, [selectedQuestId]: reason }));
+        }}
         onQuestEditTitleChange={setQuestEditTitle}
         onQuestEditDescriptionChange={setQuestEditDescription}
         onQuestEditCityAreaChange={setQuestEditCityArea}
         onQuestEditDifficultyChange={setQuestEditDifficulty}
         onQuestEditDurationChange={setQuestEditDuration}
         onQuestEditRulesChange={setQuestEditRules}
-        onClose={() => setShowQuestsModal(false)}
+        onClose={() => {
+          setShowQuestDetailsModal(false);
+          setSelectedQuestId(null);
+        }}
       />
     </div>
   );

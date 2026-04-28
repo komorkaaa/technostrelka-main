@@ -13,6 +13,7 @@ from app.services.quest import (
     hide_quest,
     list_moderation_quests,
     reject_quest,
+    unhide_quest,
     update_quest_for_moderation,
 )
 
@@ -21,10 +22,14 @@ router = APIRouter()
 
 @router.get("/quests")
 def list_moderation_quests_endpoint(
+    statuses: str | None = None,
     db: Session = Depends(get_db),
     _moderator=Depends(get_current_moderator),
 ):
-    quests = list_moderation_quests(db)
+    status_list = None
+    if statuses:
+        status_list = [part.strip() for part in statuses.split(",") if part.strip()]
+    quests = list_moderation_quests(db, statuses=status_list)
     return {
         "success": True,
         "data": {
@@ -88,6 +93,22 @@ def hide_quest_endpoint(
     _moderator=Depends(get_current_moderator),
 ):
     quest = hide_quest(db, quest_id=quest_id)
+    return {
+        "success": True,
+        "data": {
+            "id": quest.id,
+            "status": quest.status,
+        },
+    }
+
+
+@router.post("/quests/{quest_id}/unhide")
+def unhide_quest_endpoint(
+    quest_id: int,
+    db: Session = Depends(get_db),
+    _moderator=Depends(get_current_moderator),
+):
+    quest = unhide_quest(db, quest_id=quest_id)
     return {
         "success": True,
         "data": {
