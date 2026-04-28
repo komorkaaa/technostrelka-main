@@ -5,12 +5,69 @@
   --border: rgba(255, 255, 255, 0.12);
   --text: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.66);
+  --muted-strong: rgba(255, 255, 255, 0.78);
   --accent: #7dd3fc;
   --accent2: #a78bfa;
   --danger: #fb7185;
+  --success: #34d399;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --radius: 16px;
   --container: 1080px;
+  --surface: rgba(10, 15, 30, 0.66);
+  --surface-strong: rgba(15, 20, 40, 0.82);
+  --surface-soft: rgba(255, 255, 255, 0.04);
+  --surface-soft-strong: rgba(255, 255, 255, 0.06);
+  --surface-contrast: rgba(0, 0, 0, 0.2);
+  --input-bg: rgba(0, 0, 0, 0.25);
+  --ghost-bg: rgba(0, 0, 0, 0.16);
+  --nav-text: rgba(255, 255, 255, 0.72);
+  --focus-ring: 0 0 0 4px rgba(125, 211, 252, 0.14);
+  --selection-bg: rgba(125, 211, 252, 0.28);
+  --selection-text: #f8fbff;
+  --glow-a: rgba(125, 211, 252, 0.22);
+  --glow-b: rgba(167, 139, 250, 0.22);
+  --glow-c: rgba(56, 189, 248, 0.1);
+  --glow-soft-a: rgba(125, 211, 252, 0.18);
+  --glow-soft-b: rgba(167, 139, 250, 0.18);
+  --glow-soft-c: rgba(56, 189, 248, 0.1);
+  --theme-toggle-bg: rgba(255, 255, 255, 0.05);
+  --theme-toggle-bg-hover: rgba(255, 255, 255, 0.1);
+  --theme-toggle-icon: #f8fbff;
+}
+
+:root[data-theme="light"] {
+  --bg0: #eefaf1;
+  --bg1: #d8f2df;
+  --card: rgba(255, 255, 255, 0.72);
+  --border: rgba(22, 101, 52, 0.12);
+  --text: rgba(10, 42, 24, 0.92);
+  --muted: rgba(26, 71, 41, 0.68);
+  --muted-strong: rgba(19, 64, 36, 0.78);
+  --accent: #16a34a;
+  --accent2: #22c55e;
+  --danger: #e11d48;
+  --success: #16a34a;
+  --shadow: 0 20px 60px rgba(38, 94, 56, 0.12);
+  --surface: rgba(241, 252, 244, 0.78);
+  --surface-strong: rgba(248, 255, 249, 0.9);
+  --surface-soft: rgba(255, 255, 255, 0.3);
+  --surface-soft-strong: rgba(255, 255, 255, 0.56);
+  --surface-contrast: rgba(255, 255, 255, 0.62);
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --ghost-bg: rgba(255, 255, 255, 0.54);
+  --nav-text: rgba(10, 42, 24, 0.68);
+  --focus-ring: 0 0 0 4px rgba(34, 197, 94, 0.16);
+  --selection-bg: rgba(34, 197, 94, 0.22);
+  --selection-text: #073617;
+  --glow-a: rgba(34, 197, 94, 0.24);
+  --glow-b: rgba(134, 239, 172, 0.28);
+  --glow-c: rgba(22, 163, 74, 0.14);
+  --glow-soft-a: rgba(34, 197, 94, 0.18);
+  --glow-soft-b: rgba(134, 239, 172, 0.2);
+  --glow-soft-c: rgba(22, 163, 74, 0.12);
+  --theme-toggle-bg: rgba(255, 255, 255, 0.72);
+  --theme-toggle-bg-hover: rgba(255, 255, 255, 0.9);
+  --theme-toggle-icon: #14532d;
 }
 
 *,
@@ -20,8 +77,14 @@
 }
 
 html,
-body {
+body,
+#root {
   height: 100%;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-text);
 }
 
 /* Maps */
@@ -38,8 +101,8 @@ body {
     "Segoe UI Emoji";
   color: var(--text);
   background:
-    radial-gradient(900px 500px at 20% 0%, rgba(125, 211, 252, 0.22), transparent 60%),
-    radial-gradient(900px 500px at 90% 30%, rgba(167, 139, 250, 0.22), transparent 60%),
+    radial-gradient(900px 500px at 20% 0%, var(--glow-a), transparent 60%),
+    radial-gradient(900px 500px at 90% 30%, var(--glow-b), transparent 60%),
     linear-gradient(180deg, var(--bg0), var(--bg1));
   background-attachment: fixed;
   background-repeat: no-repeat;
@@ -56,9 +119,9 @@ body::before {
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(700px 450px at 25% 25%, rgba(125, 211, 252, 0.18), transparent 60%),
-    radial-gradient(650px 450px at 70% 40%, rgba(167, 139, 250, 0.18), transparent 60%),
-    radial-gradient(650px 450px at 40% 80%, rgba(56, 189, 248, 0.10), transparent 60%);
+    radial-gradient(700px 450px at 25% 25%, var(--glow-soft-a), transparent 60%),
+    radial-gradient(650px 450px at 70% 40%, var(--glow-soft-b), transparent 60%),
+    radial-gradient(650px 450px at 40% 80%, var(--glow-soft-c), transparent 60%);
   filter: blur(10px);
   animation: bgFloat 12s ease-in-out infinite alternate;
 }
@@ -110,7 +173,7 @@ a:hover {
   align-items: center;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  background: rgba(10, 15, 30, 0.66);
+  background: var(--surface);
   backdrop-filter: blur(10px);
 }
 
@@ -128,15 +191,15 @@ a:hover {
 }
 
 .navLink {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--nav-text);
   padding: 8px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
 }
 .navLink:hover {
   text-decoration: none;
-  border-color: rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  background: var(--surface-soft);
 }
 .navLink.active {
   color: var(--text);
@@ -184,8 +247,8 @@ a:hover {
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.20);
-  color: rgba(255, 255, 255, 0.80);
+  background: var(--surface-contrast);
+  color: var(--muted-strong);
   font-size: 12px;
   max-width: 100%;
   min-width: 0;
@@ -194,7 +257,7 @@ a:hover {
 /* legacy compatibility */
 .btn.secondary {
   border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-soft-strong);
 }
 
 .card {
@@ -252,7 +315,7 @@ h1 {
   padding: 0 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-bg);
   color: var(--text);
   outline: none;
   width: 100%;
@@ -268,7 +331,7 @@ input[type="file"] {
 
 .input:focus {
   border-color: rgba(125, 211, 252, 0.55);
-  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.12);
+  box-shadow: var(--focus-ring);
 }
 
 .btn {
@@ -312,7 +375,7 @@ input[type="file"] {
 }
 
 .btn:focus-visible {
-  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.14);
+  box-shadow: var(--focus-ring);
   border-color: rgba(125, 211, 252, 0.55);
 }
 
@@ -331,12 +394,12 @@ input[type="file"] {
 
 .btn-secondary {
   border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-soft-strong);
 }
 
 .btn-ghost {
   border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.16);
+  background: var(--ghost-bg);
 }
 
 .btn-danger {
@@ -384,13 +447,13 @@ input[type="file"] {
 
 .errorTitle {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--muted-strong);
   margin-bottom: 4px;
 }
 
 .errorMsg {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--muted);
 }
 
 .toastHost {
@@ -404,7 +467,7 @@ input[type="file"] {
 }
 
 .toast {
-  background: rgba(15, 20, 40, 0.82);
+  background: var(--surface-strong);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
   padding: 12px 12px 11px;
@@ -426,13 +489,13 @@ input[type="file"] {
 
 .toastTitle {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--muted-strong);
   margin-bottom: 2px;
 }
 
 .toastMsg {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 
@@ -441,15 +504,15 @@ input[type="file"] {
   height: 28px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.80);
+  background: var(--surface-soft);
+  color: var(--muted-strong);
   cursor: pointer;
   flex: none;
   transition: transform 120ms ease, background 160ms ease, border-color 160ms ease;
 }
 .toastClose:hover {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-soft-strong);
   border-color: rgba(255, 255, 255, 0.18);
 }
 
@@ -492,6 +555,87 @@ input[type="file"] {
 
 .topbarRight {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.themeToggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--theme-toggle-bg);
+  color: var(--theme-toggle-icon);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.themeToggle:hover {
+  background: var(--theme-toggle-bg-hover);
+  border-color: rgba(125, 211, 252, 0.28);
+}
+
+.themeToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.themeToggleIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.themeToggleCompact {
+  width: 46px;
+  height: 46px;
+}
+
+.themeToggleProfile {
+  width: 48px;
+  height: 48px;
+}
+
+.authCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.authCardHeader > :first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.authCardHeader .themeToggleCompact {
+  margin-top: 2px;
+}
+
+.profileThemePanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 8px 4px;
+}
+
+.profileThemeTitle {
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.moderationButton {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.26), rgba(167, 139, 250, 0.2));
 }
 
 @media (max-width: 720px) {
@@ -501,6 +645,7 @@ input[type="file"] {
   }
   .topbarRight {
     justify-self: start;
+    justify-content: flex-start;
   }
 }
 
@@ -558,7 +703,7 @@ a.card:hover {
   height: 28px;
   border-radius: 999px;
   border: 3px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(125, 211, 252, 0.75);
+  border-top-color: var(--accent);
   animation: spin 0.9s linear infinite;
 }
 

@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, EmailStr, Field
 
 
-AgeGroup = Literal["10-11", "12-13", "14-15", "16-17", "18+"]
+AgeGroup = Literal["14-15", "16-17"]
 UserRole = Literal["user", "moderator"]
 
 class UserCreate(BaseModel):
