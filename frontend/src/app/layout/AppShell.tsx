@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/features/auth/model/useAuth";
 import { Button } from "@/shared/ui/Button";
 
@@ -39,9 +39,17 @@ export function AppShell() {
       { key: "profile", label: "Профиль", to: "/profile" },
     ];
     if (isModerator) items.push({ key: "moderation", label: "Окно модератора", to: "/moderation" });
-    items.push({ key: "status", label: "Статус", to: "/status" });
     return items;
   }, [isModerator, status]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [drawerOpen]);
 
   return (
     <div className="shell">

@@ -118,7 +118,7 @@ body {
     radial-gradient(900px 500px at 20% 0%, var(--glow-a), transparent 60%),
     radial-gradient(900px 500px at 90% 30%, var(--glow-b), transparent 60%),
     linear-gradient(180deg, var(--bg0), var(--bg1));
-  background-attachment: fixed;
+  background-attachment: scroll;
   background-repeat: no-repeat;
   min-height: 100vh;
   overflow-x: hidden;
@@ -129,15 +129,15 @@ body {
 
 body::before {
   content: "";
-  position: fixed;
-  inset: -25%;
+  position: absolute;
+  inset: 0;
   pointer-events: none;
   z-index: -1;
   background:
     radial-gradient(700px 450px at 25% 25%, var(--glow-soft-a), transparent 60%),
     radial-gradient(650px 450px at 70% 40%, var(--glow-soft-b), transparent 60%),
     radial-gradient(650px 450px at 40% 80%, var(--glow-soft-c), transparent 60%);
-  filter: blur(10px);
+  filter: blur(12px);
   animation: bgFloat 12s ease-in-out infinite alternate;
   transition: background var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1), filter var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -184,10 +184,9 @@ body.theme-wave-active::after {
   }
 }
 
-@media (max-width: 720px) {
-  body {
-    background-attachment: scroll;
-  }
+html {
+  background: linear-gradient(180deg, var(--bg0), var(--bg1));
+  background-attachment: scroll;
 }
 
 a {
@@ -1130,12 +1129,8 @@ input[type="file"] {
 
 @media (max-width: 720px) {
   .topbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 10px;
-  }
-  .topbarRight {
-    justify-self: start;
-    justify-content: flex-start;
   }
   .questActionBtn,
   .questTeamSelect {
@@ -1154,6 +1149,8 @@ input[type="file"] {
   .burgerButton {
     display: inline-flex;
     justify-self: end;
+    grid-column: 3;
+    grid-row: 1;
   }
 }
 
