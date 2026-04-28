@@ -6,7 +6,17 @@ export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
     <textarea
       {...rest}
       className={`input ${className ?? ""}`}
-      style={{ height: 120, paddingTop: 10, ...(style ?? {}) }}
+      style={{
+        minHeight: 120,
+        height: 120,
+        maxWidth: "100%",
+        width: "100%",
+        paddingTop: 10,
+        resize: "none",
+        overflowY: "auto",
+        overflowX: "hidden",
+        ...(style ?? {}),
+      }}
     />
   );
 }

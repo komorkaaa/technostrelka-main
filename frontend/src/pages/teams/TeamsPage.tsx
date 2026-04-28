@@ -129,7 +129,7 @@ export function TeamsPage() {
                 </div>
               </div>
               {t.description && (
-                <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+                <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                   {t.description}
                 </div>
               )}

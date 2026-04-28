@@ -18,6 +18,7 @@ export function QuestMap({
   statusByOrder?: Record<number, CpStatus>;
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const collectionRef = useRef<any>(null);
 
@@ -27,6 +28,38 @@ export function QuestMap({
   }, [checkpoints]);
 
   const points = useMemo(() => checkpoints.map((cp) => ({ cp, st: statusByOrder?.[cp.order_index] ?? "locked" })), [checkpoints, statusByOrder]);
+
+  function fitMapToViewport() {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        try {
+          map.container.fitToViewport();
+        } catch {
+          // Ignore viewport sync failures during transient fullscreen transitions.
+        }
+      }, 0);
+    });
+  }
+
+  function restoreMapContainerSize() {
+    const mapElement = mapRef.current;
+    const frameElement = frameRef.current;
+    if (!mapElement || !frameElement) return;
+
+    mapElement.style.width = "100%";
+    mapElement.style.height = "100%";
+    mapElement.style.position = "absolute";
+    mapElement.style.inset = "0";
+    mapElement.style.left = "0";
+    mapElement.style.top = "0";
+
+    frameElement.style.width = "100%";
+    frameElement.style.height = "360px";
+    frameElement.style.minHeight = "360px";
+  }
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -44,10 +77,22 @@ export function QuestMap({
       const collection = new ymaps.GeoObjectCollection();
       map.geoObjects.add(collection);
       collectionRef.current = collection;
+      restoreMapContainerSize();
+      fitMapToViewport();
     });
+
+    const handleViewportChange = () => {
+      restoreMapContainerSize();
+      fitMapToViewport();
+    };
+
+    window.addEventListener("resize", handleViewportChange);
+    document.addEventListener("fullscreenchange", handleViewportChange);
 
     return () => {
       disposed = true;
+      window.removeEventListener("resize", handleViewportChange);
+      document.removeEventListener("fullscreenchange", handleViewportChange);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.destroy();
         mapInstanceRef.current = null;
@@ -70,7 +115,12 @@ export function QuestMap({
     }
 
     mapInstanceRef.current.setCenter(center, mapInstanceRef.current.getZoom(), { duration: 200 });
+    fitMapToViewport();
   }, [points, center]);
 
-  return <div ref={mapRef} className="mapContainer" />;
+  return (
+    <div ref={frameRef} className="mapFrame">
+      <div ref={mapRef} className="mapContainer" />
+    </div>
+  );
 }
