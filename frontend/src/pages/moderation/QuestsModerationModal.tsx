@@ -26,22 +26,23 @@ export function QuestsModerationModal(props: Props) {
     <div className="modalOverlay" onClick={onClose}>
       <div className="modalCard usersModalCard" onClick={(e) => e.stopPropagation()}>
         <div className="cardHeader">
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-            <h1 style={{ fontSize: 20 }}>Все квесты на модерации</h1>
+          <div className="modalHeaderRow">
+            <h1 style={{ fontSize: 20 }}>{mode === "hidden" ? "Скрытые квесты" : "Квесты на модерации"}</h1>
             <Button variant="secondary" size="sm" onClick={onClose}>
               Закрыть
             </Button>
           </div>
         </div>
-        <div className="form" style={{ gap: 10, maxHeight: "70vh", overflow: "auto" }}>
+        <div className="modalBody">
+          <div className="modalList">
           {filteredQuests.length === 0 ? (
             <div className="hint">Нет квестов на проверку.</div>
           ) : (
             filteredQuests.map((q) => (
-              <div key={q.id} className="card" style={{ width: "100%", padding: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <div key={q.id} className="card cardCompact">
+                <div className="modalHeaderRow">
                   <div style={{ fontWeight: 750, minWidth: 0, overflowWrap: "anywhere" }}>{q.title}</div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <div className="pillRow">
                     <span className="pill">{q.city_area}</span>
                     <span className="pill">Сложность {q.difficulty}</span>
                     <span className="pill">{q.duration_minutes} мин</span>
@@ -52,7 +53,7 @@ export function QuestsModerationModal(props: Props) {
                 <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                   {q.description}
                 </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                <div className="modalActions">
                   <Button variant="ghost" onClick={() => onOpenQuest(q.id)}>
                     Открыть квест
                   </Button>
@@ -60,6 +61,7 @@ export function QuestsModerationModal(props: Props) {
               </div>
             ))
           )}
+          </div>
         </div>
       </div>
     </div>,

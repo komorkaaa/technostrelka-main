@@ -50,14 +50,15 @@ export function UsersModerationModal(props: Props) {
     <div className="modalOverlay" onClick={onClose}>
       <div className="modalCard usersModalCard" onClick={(e) => e.stopPropagation()}>
         <div className="cardHeader">
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+          <div className="modalHeaderRow">
             <h1 style={{ fontSize: 20 }}>Все пользователи</h1>
             <Button variant="secondary" size="sm" onClick={onClose}>
               Закрыть
             </Button>
           </div>
         </div>
-        <div className="usersModalGrid">
+        <div className="modalBody">
+          <div className="usersModalGrid" style={{ padding: 0 }}>
           <div className="usersModalList">
             {users.map((user) => (
               <button
@@ -114,6 +115,7 @@ export function UsersModerationModal(props: Props) {
             ) : (
               <div className="hint">Пользователи не найдены.</div>
             )}
+          </div>
           </div>
         </div>
       </div>
