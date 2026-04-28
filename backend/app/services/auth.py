@@ -10,11 +10,12 @@ def create_user(db: Session, email: str, password: str):
     existing = db.query(User).filter(User.email == email).first()
 
     if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Этот email уже зарегистрирован")
 
     user = User(
         email=email,
-        hashed_password=hash_password(password)
+        hashed_password=hash_password(password),
+        role="user",
     )
 
     db.add(user)
@@ -22,7 +23,7 @@ def create_user(db: Session, email: str, password: str):
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Этот email уже зарегистрирован")
     db.refresh(user)
 
     return user

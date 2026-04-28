@@ -43,26 +43,32 @@ export function StatusPage() {
     <div className="page">
       <div className="card wide">
         <div className="cardHeader">
-          <h1>Status</h1>
-          <p className="muted">Quick diagnostics page</p>
+          <h1>Статус</h1>
+          <p className="muted">Быстрая проверка работоспособности</p>
         </div>
 
         <div className="row">
           <div>
             <div className="muted">Backend /health</div>
             <div className="mono">
-              {loading ? "Loading..." : health ? JSON.stringify(health) : error ? `Error: ${error}` : "Unknown"}
+              {loading ? "Загрузка..." : health ? JSON.stringify(health) : error ? `Ошибка: ${error}` : "Неизвестно"}
             </div>
           </div>
           <Button onClick={load} disabled={loading}>
-            {loading ? "Refreshing..." : "Refresh"}
+            {loading ? "Обновляем..." : "Обновить"}
           </Button>
         </div>
 
         <div className="hint">
-          <div>mode: <span className="mono">{info.mode}</span></div>
-          <div>buildRef: <span className="mono">{info.buildRef}</span></div>
-          <div>buildTime: <span className="mono">{info.buildTime}</span></div>
+          <div>
+            mode: <span className="mono">{info.mode}</span>
+          </div>
+          <div>
+            buildRef: <span className="mono">{info.buildRef}</span>
+          </div>
+          <div>
+            buildTime: <span className="mono">{info.buildTime}</span>
+          </div>
         </div>
       </div>
     </div>

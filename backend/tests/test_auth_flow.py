@@ -44,3 +44,25 @@ def test_login_invalid_credentials_returns_envelope(app):
     data = resp.json()
     assert data["success"] is False
     assert data["error"]["code"] == "HTTP_ERROR"
+
+
+def test_register_rejects_password_with_spaces_or_special_chars(app):
+    client = TestClient(app)
+
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={"email": "invalid@example.com", "password": "12345678 "},
+    )
+    assert resp.status_code == 422
+    data = resp.json()
+    assert data["success"] is False
+    assert "Пароль не должен содержать пробелы и спецсимволы" in data["error"]["message"]
+
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={"email": "invalid2@example.com", "password": "12345678!"},
+    )
+    assert resp.status_code == 422
+    data = resp.json()
+    assert data["success"] is False
+    assert "Пароль не должен содержать пробелы и спецсимволы" in data["error"]["message"]

@@ -1,4 +1,4 @@
-.PHONY: up stop down logs ps reset-db rebuild migrate backend-shell test-backend front-dev front-typecheck
+.PHONY: up stop down logs ps reset-db rebuild migrate seed backend-shell test-backend front-dev front-typecheck
 
 up:
 	docker compose up --build -d
@@ -24,6 +24,9 @@ rebuild:
 migrate:
 	docker compose exec backend alembic upgrade head
 
+seed:
+	docker compose exec backend python /app/scripts/seed_demo.py
+
 backend-shell:
 	docker compose exec backend sh
 
@@ -35,4 +38,3 @@ front-dev:
 
 front-typecheck:
 	cd frontend && npm install && npm run typecheck
-

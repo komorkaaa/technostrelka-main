@@ -26,12 +26,14 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 COPY --chown=app:app app /app/app
 COPY --chown=app:app tests /app/tests
+COPY --chown=app:app scripts /app/scripts
 COPY --chown=app:app alembic.ini /app/alembic.ini
 COPY --chown=app:app alembic /app/alembic
 COPY entrypoint.sh /app/entrypoint.sh
 
 USER root
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh
 USER app
 
 EXPOSE 8000

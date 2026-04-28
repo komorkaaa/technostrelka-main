@@ -5,19 +5,36 @@ const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL ?? "";
 
 let refreshInFlight: Promise<boolean> | null = null;
 
+function toNetworkApiError(error: unknown): ApiError {
+  const message = error instanceof Error ? error.message : "Ошибка сети";
+  return {
+    status: 0,
+    code: "NETWORK_ERROR",
+    message,
+    details: error,
+  };
+}
+
 function toApiError(status: number, body: unknown): ApiError {
   if (body && typeof body === "object" && "error" in body) {
     const err = (body as any).error;
     if (err && typeof err === "object" && typeof err.code === "string") {
-      return { status, code: err.code, message: String(err.message ?? "Request failed"), details: err.details };
+      return { status, code: err.code, message: String(err.message ?? "Ошибка запроса"), details: err.details };
     }
   }
-  return { status, code: "HTTP_ERROR", message: "Request failed", details: body };
+  return { status, code: "HTTP_ERROR", message: "Ошибка запроса", details: body };
 }
 
 async function parseEnvelope<T>(res: Response): Promise<T> {
   const text = await res.text();
-  const json = text ? JSON.parse(text) : null;
+  let json: unknown = null;
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = text;
+    }
+  }
 
   if (!res.ok) {
     throw toApiError(res.status, json);
@@ -25,10 +42,10 @@ async function parseEnvelope<T>(res: Response): Promise<T> {
 
   const env = json as ApiEnvelope<T>;
   if (!env || typeof env !== "object") {
-    throw { code: "BAD_RESPONSE", message: "Bad response", details: json } satisfies ApiError;
+    throw { code: "BAD_RESPONSE", message: "Некорректный ответ сервера", details: json } satisfies ApiError;
   }
   if (env.success === false) {
-    throw { ...(env.error ?? { code: "API_ERROR", message: "API error" }), status: res.status } satisfies ApiError;
+    throw { ...(env.error ?? { code: "API_ERROR", message: "Ошибка API" }), status: res.status } satisfies ApiError;
   }
   return env.data;
 }
@@ -66,11 +83,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const token = getAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (error) {
+    throw toNetworkApiError(error);
+  }
 
   if (res.status === 401) {
     const ok = await refreshOnce();
@@ -78,11 +100,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       const retryHeaders: Record<string, string> = { "Content-Type": "application/json" };
       const retryToken = getAccessToken();
       if (retryToken) retryHeaders.Authorization = `Bearer ${retryToken}`;
-      const retry = await fetch(`${API_BASE_URL}${path}`, {
-        method,
-        headers: retryHeaders,
-        body: body === undefined ? undefined : JSON.stringify(body),
-      });
+      let retry: Response;
+      try {
+        retry = await fetch(`${API_BASE_URL}${path}`, {
+          method,
+          headers: retryHeaders,
+          body: body === undefined ? undefined : JSON.stringify(body),
+        });
+      } catch (error) {
+        throw toNetworkApiError(error);
+      }
       return parseEnvelope<T>(retry);
     }
   }
@@ -93,5 +120,43 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
-};
+  patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
+  postForm: async <T>(path: string, form: FormData) => {
+    const headers: Record<string, string> = {};
+    const token = getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
 
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE_URL}${path}`, {
+        method: "POST",
+        headers,
+        body: form,
+      });
+    } catch (error) {
+      throw toNetworkApiError(error);
+    }
+
+    if (res.status === 401) {
+      const ok = await refreshOnce();
+      if (ok) {
+        const retryHeaders: Record<string, string> = {};
+        const retryToken = getAccessToken();
+        if (retryToken) retryHeaders.Authorization = `Bearer ${retryToken}`;
+        let retry: Response;
+        try {
+          retry = await fetch(`${API_BASE_URL}${path}`, {
+            method: "POST",
+            headers: retryHeaders,
+            body: form,
+          });
+        } catch (error) {
+          throw toNetworkApiError(error);
+        }
+        return parseEnvelope<T>(retry);
+      }
+    }
+
+    return parseEnvelope<T>(res);
+  },
+};

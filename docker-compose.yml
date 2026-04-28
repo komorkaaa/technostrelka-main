@@ -31,6 +31,7 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_URL: ${REDIS_URL}
       SECRET_KEY: ${SECRET_KEY}
       ALGORITHM: ${ALGORITHM}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
@@ -38,6 +39,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - uploads:/app/app/uploads
 
   nginx:
     build:
@@ -46,6 +49,7 @@ services:
       args:
         VITE_BUILD_REF: ${VITE_BUILD_REF:-local}
         VITE_BUILD_TIME: ${VITE_BUILD_TIME:-unknown}
+        VITE_YANDEX_SUGGEST_API_KEY: ${VITE_YANDEX_SUGGEST_API_KEY:-}
     restart: unless-stopped
     env_file:
       - .env
@@ -66,3 +70,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:
