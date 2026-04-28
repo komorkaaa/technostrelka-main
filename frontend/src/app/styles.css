@@ -1,6 +1,10 @@
 :root {
   --theme-wave-x: 50vw;
   --theme-wave-y: 50vh;
+  --theme-dur: 520ms;
+  --mobile-nav-h: 64px;
+  /* Optional background image (kept disabled by default) */
+  --bg-photo: none;
   --bg0: #0b1020;
   --bg1: #111a33;
   --card: rgba(255, 255, 255, 0.06);
@@ -81,7 +85,19 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+html {
+  background:
+    var(--bg-photo),
+    radial-gradient(900px 500px at 20% 0%, var(--glow-a), transparent 60%),
+    radial-gradient(900px 500px at 90% 30%, var(--glow-b), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+  background-attachment: scroll;
+  background-repeat: no-repeat;
+  background-size: cover, auto, auto, auto;
+  background-position: center, 20% 0%, 90% 30%, 0 0;
 }
 
 ::selection {
@@ -112,32 +128,27 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
     "Segoe UI Emoji";
   color: var(--text);
-  background:
-    radial-gradient(900px 500px at 20% 0%, var(--glow-a), transparent 60%),
-    radial-gradient(900px 500px at 90% 30%, var(--glow-b), transparent 60%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  background: transparent;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
   isolation: isolate;
-  transition: background 520ms cubic-bezier(0.22, 1, 0.36, 1), color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1), color calc(var(--theme-dur) - 100ms) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body::before {
   content: "";
-  position: fixed;
-  inset: -25%;
+  position: absolute;
+  inset: 0;
   pointer-events: none;
   z-index: -1;
   background:
     radial-gradient(700px 450px at 25% 25%, var(--glow-soft-a), transparent 60%),
     radial-gradient(650px 450px at 70% 40%, var(--glow-soft-b), transparent 60%),
     radial-gradient(650px 450px at 40% 80%, var(--glow-soft-c), transparent 60%);
-  filter: blur(10px);
+  filter: blur(12px);
   animation: bgFloat 12s ease-in-out infinite alternate;
-  transition: background 540ms cubic-bezier(0.22, 1, 0.36, 1), filter 540ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1), filter var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body::after {
@@ -182,11 +193,7 @@ body.theme-wave-active::after {
   }
 }
 
-@media (max-width: 720px) {
-  body {
-    background-attachment: scroll;
-  }
-}
+/* (background is on html) */
 
 a {
   color: var(--accent);
@@ -222,7 +229,7 @@ a:hover {
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   backdrop-filter: blur(10px);
-  transition: background-color 420ms cubic-bezier(0.22, 1, 0.36, 1), border-color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1), border-color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .brand {
@@ -264,6 +271,218 @@ a:hover {
   width: 100%;
   max-width: calc(var(--container) + 80px);
   margin: 0 auto;
+}
+
+/* Mobile burger + drawer */
+.burgerButton {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--theme-toggle-bg);
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: transform 120ms ease, background-color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1),
+    border-color var(--theme-dur) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.burgerButton:hover {
+  background: var(--theme-toggle-bg-hover);
+}
+
+.burgerButton:active {
+  transform: translateY(1px);
+}
+
+.burgerButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.burgerIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: grid;
+  justify-items: end;
+}
+
+.drawerPanel {
+  height: 100%;
+  width: min(360px, 92vw);
+  background: var(--surface-strong);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 14px 12px 16px;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 12px;
+  animation: drawerIn 200ms ease-out both;
+}
+
+.drawerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.drawerTitle {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.drawerClose {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--ghost-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 0;
+  transition: background-color 160ms ease, transform 120ms ease;
+}
+
+.drawerClose:active {
+  transform: translateY(1px);
+}
+
+.drawerUser {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.drawerUserName {
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.drawerUserRole {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.drawerList {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.drawerBottom {
+  /* keep visual identical; only pushes Logout lower via layout */
+}
+
+.drawerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 750;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+button.drawerItem {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+}
+
+.listCard {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: border-color 220ms ease, background-color 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+button.listCard {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--border);
+  font: inherit;
+}
+
+.listCard:hover {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: var(--surface-soft-strong);
+  text-decoration: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  /* Reduce mobile Safari/Chrome compositing artifacts ("black rectangles") */
+  .card,
+  .topbar,
+  .modalCard,
+  .toast {
+    backdrop-filter: none;
+  }
+
+  body::before {
+    animation: none;
+    filter: none;
+  }
+}
+
+.drawerItem:hover {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: var(--surface-soft-strong);
+  text-decoration: none;
+}
+
+.drawerItem:active {
+  transform: translateY(1px);
+}
+
+.drawerItem.active {
+  border-color: rgba(125, 211, 252, 0.35);
+  background: rgba(125, 211, 252, 0.10);
+}
+
+.drawerItem.danger {
+  border-color: rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.10);
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translate3d(16px, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
 }
 
 .grid2 {
@@ -454,7 +673,7 @@ input[type="file"] {
   padding: 6px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(15, 20, 40, 0.96);
+  background: var(--surface-strong);
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
 }
@@ -730,6 +949,7 @@ input[type="file"] {
   display: grid;
   place-items: center;
   padding: 16px;
+  overscroll-behavior: contain;
 }
 
 .modalCard {
@@ -741,10 +961,102 @@ input[type="file"] {
   animation: fadeUp 180ms ease-out both;
   transition: background-color 420ms cubic-bezier(0.22, 1, 0.36, 1), border-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  max-height: min(84vh, 920px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .usersModalCard {
   width: min(980px, 100%);
+}
+
+.modalHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.modalBody {
+  padding: 0 12px 12px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.modalToolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.modalList {
+  display: grid;
+  gap: 10px;
+}
+
+.cardCompact {
+  width: 100%;
+  padding: 12px;
+}
+
+.pillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.modalActions .btn {
+  max-width: 100%;
+}
+
+.modalOverlay:has(.modalCard) {
+  /* Make it feel more "app-like" on mobile */
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 720px) {
+  .modalOverlay {
+    place-items: stretch;
+    padding: 0;
+  }
+  .modalCard,
+  .usersModalCard {
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+  .cardHeader {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--surface-strong);
+    border-bottom: 1px solid var(--border);
+  }
+  .modalBody {
+    padding: 0 12px 14px;
+  }
+  .usersModalGrid {
+    padding: 0 12px 12px;
+  }
+  .usersModalList {
+    max-height: none;
+    padding-right: 0;
+  }
 }
 
 .usersModalGrid {
@@ -877,17 +1189,45 @@ input[type="file"] {
 
 @media (max-width: 720px) {
   .topbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 10px;
-  }
-  .topbarRight {
-    justify-self: start;
-    justify-content: flex-start;
   }
   .questActionBtn,
   .questTeamSelect {
     width: 100%;
   }
+
+  /* Reduce header clutter on mobile: use burger + drawer */
+  .nav {
+    display: none;
+  }
+
+  .topbarRight {
+    display: none;
+  }
+
+  .burgerButton {
+    display: inline-flex;
+    justify-self: end;
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+/* Smooth theme change: slightly soften flashes */
+.themeChanging body::before {
+  filter: blur(12px);
+}
+
+.themeChanging .card,
+.themeChanging .topbar,
+.themeChanging .modalCard,
+.themeChanging .usersModalListItem,
+.themeChanging .btn,
+.themeChanging .input,
+.themeChanging .toast,
+.themeChanging .pill {
+  transition-duration: var(--theme-dur) !important;
 }
 
 .pill input[type="checkbox"] {

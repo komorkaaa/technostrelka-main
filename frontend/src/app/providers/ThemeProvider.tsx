@@ -23,9 +23,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<ThemeMode>(readInitialTheme);
 
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("themeChanging");
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem(STORAGE_KEY, theme);
+    const t = window.setTimeout(() => {
+      root.classList.remove("themeChanging");
+    }, 520);
+    return () => window.clearTimeout(t);
   }, [theme]);
 
   return (

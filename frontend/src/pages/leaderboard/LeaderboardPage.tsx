@@ -58,8 +58,7 @@ export function LeaderboardPage() {
           {items.map((t, idx) => (
             <button
               key={t.team_id}
-              className="card"
-              style={{ width: "100%", padding: 12, textAlign: "left", cursor: "pointer", color: "inherit" }}
+              className="listCard"
               onClick={() => void openTeam(t.team_id)}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
