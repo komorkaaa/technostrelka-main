@@ -238,11 +238,11 @@ export function QuestDetailsPage() {
         </div>
         {quest.checkpoints.map((cp) => (
           <div key={cp.id} className="card" style={{ width: "100%", padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+            <div className="checkpointHeaderRow" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
               <div style={{ fontWeight: 700 }}>
                 {cp.order_index}. {cp.title}
               </div>
-              <span className="pill">{taskTypeLabel(cp.task_type)}</span>
+              <span className="pill checkpointTypePill">{taskTypeLabel(cp.task_type)}</span>
             </div>
             <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
               {cp.task_text}
@@ -264,7 +264,7 @@ export function QuestDetailsPage() {
       <div className="form">
         <h2 style={{ margin: "8px 0 0", fontSize: 18 }}>Пожаловаться</h2>
         {complaintResult && <div className="hint">{complaintResult}</div>}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div className="complaintGrid">
           <label className="label">
             На что
             <Select value={complaintTarget} onChange={(e) => setComplaintTarget(e.target.value as any)}>
@@ -275,6 +275,7 @@ export function QuestDetailsPage() {
           <label className="label">
             Точка
             <Select
+              className="complaintCheckpointSelect"
               value={checkpointId}
               onChange={(e) => setCheckpointId(e.target.value)}
               disabled={complaintTarget !== "checkpoint"}

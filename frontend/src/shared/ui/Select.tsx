@@ -74,6 +74,10 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  useEffect(() => {
+    setOpen(false);
+  }, [selectedValue]);
+
   function pick(nextValue: string) {
     setOpen(false);
     if (!onChange) return;
@@ -93,7 +97,7 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span>{displayLabel}</span>
+        <span className="selectTriggerLabel">{displayLabel}</span>
         <span className={`selectChevron ${open ? "open" : ""}`} aria-hidden="true">
           ▾
         </span>
@@ -106,7 +110,10 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
               type="button"
               className={`suggestItem selectItem ${option.value === selectedOption?.value ? "active" : ""}`}
               disabled={option.disabled}
-              onClick={() => pick(option.value)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                pick(option.value);
+              }}
             >
               {option.label}
             </button>

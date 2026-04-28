@@ -133,6 +133,11 @@ export function QuestsPage() {
             <option value="pro">Работают профи (4–5)</option>
           </Select>
         </label>
+        <div className="filtersResetWrap">
+          <Button className="btn secondary" onClick={resetFilters} style={{ height: 34, padding: "0 10px", fontSize: 12 }}>
+            Сбросить фильтры
+          </Button>
+        </div>
       </div>
 
       <div className="row" style={{ paddingTop: 0 }}>
@@ -145,9 +150,6 @@ export function QuestsPage() {
           />
           Старт рядом со мной
         </label>
-        <Button className="btn secondary" onClick={resetFilters} style={{ height: 34, padding: "0 10px", fontSize: 12 }}>
-          Сбросить фильтры
-        </Button>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           {nearbyEnabled && (
             <>
