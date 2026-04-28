@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { QuestCheckpoint } from "@/entities/quest/model";
 import { loadYMaps } from "@/shared/map/ymaps";
 
@@ -21,6 +21,7 @@ export function QuestMap({
   const frameRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const collectionRef = useRef<any>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   const center = useMemo(() => {
     const start = checkpoints.find((c) => c.order_index === 1) ?? checkpoints[0];
@@ -102,9 +103,11 @@ export function QuestMap({
   }, []);
 
   useEffect(() => {
+    if (!mapReady) return;
     if (!collectionRef.current || !window.ymaps || !mapInstanceRef.current) return;
     const ymaps = window.ymaps;
     const collection = collectionRef.current;
+    const map = mapInstanceRef.current;
     collection.removeAll();
 
     for (const { cp, st } of points) {
