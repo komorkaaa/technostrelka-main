@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { QuestCheckpoint } from "@/entities/quest/model";
 import { loadYMaps } from "@/shared/map/ymaps";
 
@@ -20,6 +20,7 @@ export function QuestMap({
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const collectionRef = useRef<any>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   const center = useMemo(() => {
     const start = checkpoints.find((c) => c.order_index === 1) ?? checkpoints[0];
@@ -44,10 +45,12 @@ export function QuestMap({
       const collection = new ymaps.GeoObjectCollection();
       map.geoObjects.add(collection);
       collectionRef.current = collection;
+      setMapReady(true);
     });
 
     return () => {
       disposed = true;
+      setMapReady(false);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.destroy();
         mapInstanceRef.current = null;
@@ -57,9 +60,11 @@ export function QuestMap({
   }, []);
 
   useEffect(() => {
+    if (!mapReady) return;
     if (!collectionRef.current || !window.ymaps || !mapInstanceRef.current) return;
     const ymaps = window.ymaps;
     const collection = collectionRef.current;
+    const map = mapInstanceRef.current;
     collection.removeAll();
 
     for (const { cp, st } of points) {
@@ -69,8 +74,29 @@ export function QuestMap({
       collection.add(pm);
     }
 
-    mapInstanceRef.current.setCenter(center, mapInstanceRef.current.getZoom(), { duration: 200 });
-  }, [points, center]);
+    if (points.length > 1) {
+      const routeLine = new ymaps.Polyline(
+        points.map(({ cp }) => [cp.lat, cp.lon]),
+        {},
+        {
+          strokeColor: "#7dd3fc",
+          strokeWidth: 4,
+          strokeOpacity: 0.75,
+        }
+      );
+      collection.add(routeLine);
+    }
+
+    if (points.length > 1) {
+      map.setBounds(collection.getBounds(), {
+        checkZoomRange: true,
+        zoomMargin: 32,
+      });
+      return;
+    }
+
+    map.setCenter(center, map.getZoom(), { duration: 200 });
+  }, [points, center, mapReady]);
 
   return <div ref={mapRef} className="mapContainer" />;
 }
