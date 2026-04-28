@@ -14,8 +14,8 @@ class UserCreate(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password(cls, value: str) -> str:
-        if not (8 <= len(value) <= 128):
-            raise ValueError("Пароль должен содержать от 8 до 128 символов")
+        if not (6 <= len(value) <= 128):
+            raise ValueError("Пароль должен содержать от 6 до 128 символов")
         if not re.fullmatch(r"[A-Za-z0-9]+", value):
             raise ValueError("Пароль не должен содержать пробелы и спецсимволы")
         return value
@@ -42,7 +42,7 @@ class UserOut(BaseModel):
 
 class AdminUserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
     role: UserRole = "user"
 
     @field_validator("password")

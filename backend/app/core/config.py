@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import computed_field, model_validator
+from pydantic import computed_field, model_validator, Field
 
 _THIS_FILE = Path(__file__).resolve()
 # The python package root (../app). In Docker this is usually `/app/app` and is writable
@@ -27,25 +27,25 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    ENV: str = "dev"  # dev | prod
-    DEBUG: bool = True
+    ENV: str = "dev"
+    DEBUG: bool = False
 
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str | None = None
 
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "technostrelkadb"
+    POSTGRES_USER: str = Field(...)
+    POSTGRES_PASSWORD: str = Field(...)
+    POSTGRES_HOST: str = Field(...)
+    POSTGRES_PORT: int = Field(...)
+    POSTGRES_DB: str = Field(...)
 
-    SECRET_KEY: str = "change-me"
+    SECRET_KEY: str = Field(...)
     ALGORITHM: str = "HS256"
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    REDIS_URL: Optional[str] = None
-    CORS_ORIGINS: str = ""  # comma-separated list
+    REDIS_URL: str | None = None
+    CORS_ORIGINS: str = ""
     AUTH_RATE_LIMIT_PER_MINUTE: int = 60
     MEDIA_DIR: str = "uploads"
     QUEST_COVER_MAX_BYTES: int = 5 * 1024 * 1024
