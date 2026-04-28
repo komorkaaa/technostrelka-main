@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import auth, complaints, leaderboard, moderation, quests, runs, teams, user
+from app.api.endpoints import admin, auth, complaints, leaderboard, moderation, quests, runs, teams, user
 
 router = APIRouter()
 
@@ -11,3 +11,4 @@ router.include_router(quests.router, prefix="/api/v1/quests", tags=["quests"])
 router.include_router(runs.router, prefix="/api/v1/runs", tags=["runs"])
 router.include_router(leaderboard.router, prefix="/api/v1/leaderboard", tags=["leaderboard"])
 router.include_router(moderation.router, prefix="/api/v1/moderation", tags=["moderation"])
+router.include_router(admin.router, prefix="/api/v1/moderation-tools", tags=["moderation-tools"])

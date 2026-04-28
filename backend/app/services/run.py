@@ -23,16 +23,16 @@ def _get_ordered_checkpoints(db: Session, quest_id: int) -> list[QuestCheckpoint
         .all()
     )
     if not checkpoints:
-        raise HTTPException(status_code=409, detail="Quest has no checkpoints")
+        raise HTTPException(status_code=409, detail="У квеста нет точек")
     return checkpoints
 
 
 def start_run(db: Session, user: User, data: RunStartRequest) -> RunSession:
     quest = db.get(Quest, data.quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.status != "published":
-        raise HTTPException(status_code=409, detail="Only published quests can be started")
+        raise HTTPException(status_code=409, detail="Запуск возможен только для опубликованных квестов")
 
     run = None
     if data.mode == "solo":
@@ -51,7 +51,7 @@ def start_run(db: Session, user: User, data: RunStartRequest) -> RunSession:
         if recent_finish:
             raise HTTPException(
                 status_code=409,
-                detail="This user already has a finished run for this quest in last 24 hours",
+                detail="Вы уже проходили этот квест за последние 24 часа",
             )
 
         run = RunSession(
@@ -71,13 +71,13 @@ def start_run(db: Session, user: User, data: RunStartRequest) -> RunSession:
         )
         member_user_ids = [m.user_id for m in members]
         if user.id not in member_user_ids:
-            raise HTTPException(status_code=403, detail="User is not a member of this team")
+            raise HTTPException(status_code=403, detail="Вы не состоите в этой команде")
         if len(member_user_ids) < 2 or len(member_user_ids) > 6:
-            raise HTTPException(status_code=409, detail="Team size must be between 2 and 6")
+            raise HTTPException(status_code=409, detail="Размер команды должен быть от 2 до 6 участников")
         if quest.author_user_id in member_user_ids:
             raise HTTPException(
                 status_code=409,
-                detail="Team cannot start quest when author is in the team",
+                detail="Команда не может начать квест, если автор состоит в команде",
             )
 
         anti_cheat_from = datetime.utcnow() - timedelta(hours=24)
@@ -95,7 +95,7 @@ def start_run(db: Session, user: User, data: RunStartRequest) -> RunSession:
         if recent_team_finish:
             raise HTTPException(
                 status_code=409,
-                detail="This team already has a finished run for this quest in last 24 hours",
+                detail="Эта команда уже проходила этот квест за последние 24 часа",
             )
 
         run = RunSession(
@@ -129,7 +129,7 @@ def start_run(db: Session, user: User, data: RunStartRequest) -> RunSession:
 def _ensure_access_to_run(db: Session, user: User, run: RunSession) -> None:
     if run.mode == "solo":
         if run.user_id != user.id:
-            raise HTTPException(status_code=403, detail="No access to this run")
+            raise HTTPException(status_code=403, detail="Нет доступа к этому прохождению")
         return
 
     membership = (
@@ -138,13 +138,13 @@ def _ensure_access_to_run(db: Session, user: User, run: RunSession) -> None:
         .first()
     )
     if not membership:
-        raise HTTPException(status_code=403, detail="No access to this run")
+        raise HTTPException(status_code=403, detail="Нет доступа к этому прохождению")
 
 
 def get_run_state(db: Session, user: User, run_id: int) -> dict:
     run = db.get(RunSession, run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+        raise HTTPException(status_code=404, detail="Прохождение не найдено")
     _ensure_access_to_run(db, user, run)
 
     progress_rows = (
@@ -155,7 +155,7 @@ def get_run_state(db: Session, user: User, run_id: int) -> dict:
         .all()
     )
     if not progress_rows:
-        raise HTTPException(status_code=404, detail="Run progress not found")
+        raise HTTPException(status_code=404, detail="Прогресс прохождения не найден")
 
     passed_count = sum(1 for progress, _ in progress_rows if progress.status == "passed")
     total = len(progress_rows)
@@ -173,10 +173,10 @@ def get_run_state(db: Session, user: User, run_id: int) -> dict:
 def submit_run_answer(db: Session, user: User, run_id: int, data: RunSubmitRequest) -> dict:
     run = db.get(RunSession, run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+        raise HTTPException(status_code=404, detail="Прохождение не найдено")
     _ensure_access_to_run(db, user, run)
     if run.status in {"finished", "abandoned"}:
-        raise HTTPException(status_code=409, detail="Run is already completed")
+        raise HTTPException(status_code=409, detail="Прохождение уже завершено")
 
     active_progress_row = (
         db.query(RunCheckpointProgress, QuestCheckpoint)
@@ -185,24 +185,24 @@ def submit_run_answer(db: Session, user: User, run_id: int, data: RunSubmitReque
         .first()
     )
     if not active_progress_row:
-        raise HTTPException(status_code=409, detail="No active checkpoint to submit")
+        raise HTTPException(status_code=409, detail="Нет активной точки для ответа")
 
     progress, checkpoint = active_progress_row
     if checkpoint.task_type == "codeword" and progress.attempts >= settings.CODEWORD_MAX_ATTEMPTS:
-        raise HTTPException(status_code=429, detail="Too many attempts for this checkpoint")
+        raise HTTPException(status_code=429, detail="Слишком много попыток на этой точке")
 
     progress.attempts += 1
 
     is_correct = False
     if checkpoint.task_type == "codeword":
         if not data.codeword_answer:
-            raise HTTPException(status_code=400, detail="codeword_answer is required")
+            raise HTTPException(status_code=400, detail="Нужно передать codeword_answer")
         expected = (checkpoint.codeword_answer or "").strip().lower()
         actual = data.codeword_answer.strip().lower()
         is_correct = expected == actual
     elif checkpoint.task_type == "quiz":
         if data.quiz_selected_index is None:
-            raise HTTPException(status_code=400, detail="quiz_selected_index is required")
+            raise HTTPException(status_code=400, detail="Нужно передать quiz_selected_index")
         is_correct = data.quiz_selected_index == checkpoint.quiz_correct_index
 
     if not is_correct:
@@ -241,10 +241,10 @@ def submit_run_answer(db: Session, user: User, run_id: int, data: RunSubmitReque
 def abandon_run(db: Session, user: User, run_id: int) -> RunSession:
     run = db.get(RunSession, run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+        raise HTTPException(status_code=404, detail="Прохождение не найдено")
     _ensure_access_to_run(db, user, run)
     if run.status == "finished":
-        raise HTTPException(status_code=409, detail="Finished run cannot be abandoned")
+        raise HTTPException(status_code=409, detail="Нельзя бросить завершённое прохождение")
     if run.status == "abandoned":
         return run
 

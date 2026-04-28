@@ -38,7 +38,7 @@ def login(
     user = authenticate_user(db, data.email, data.password)
 
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
     return {
         "success": True,
@@ -61,10 +61,10 @@ def refresh(
             algorithms=[settings.ALGORITHM],
         )
     except JWTError as exc:
-        raise HTTPException(status_code=401, detail="Invalid token") from exc
+        raise HTTPException(status_code=401, detail="Некорректный токен") from exc
 
     if payload.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Некорректный токен")
 
     user_id = payload.get("sub")
 

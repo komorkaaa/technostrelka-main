@@ -11,6 +11,7 @@ import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 
 export function QuestsPage() {
   const [items, setItems] = useState<QuestListItem[]>([]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -43,6 +44,7 @@ export function QuestsPage() {
       try {
         const data = await questApi.list(params);
         setItems(data.items);
+        setHasNextPage(data.has_next);
       } catch (e) {
         setError(e as ApiError);
       } finally {
@@ -62,6 +64,9 @@ export function QuestsPage() {
       { enableHighAccuracy: false, timeout: 10_000 },
     );
   }
+
+  const hasPrevPage = page > 1;
+  const showPagination = hasPrevPage || hasNextPage;
 
   return (
     <div className="card wide">
@@ -140,15 +145,17 @@ export function QuestsPage() {
         </div>
       )}
 
-      <div className="cardFooter">
-        <Button className="btn secondary" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading}>
-          Назад
-        </Button>
-        <div className="muted">Страница {page}</div>
-        <Button className="btn secondary" onClick={() => setPage((p) => p + 1)} disabled={loading}>
-          Вперёд
-        </Button>
-      </div>
+      {showPagination && (
+        <div className="cardFooter">
+          <Button className="btn secondary" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={!hasPrevPage || loading}>
+            Назад
+          </Button>
+          <div className="muted">Страница {page}</div>
+          <Button className="btn secondary" onClick={() => setPage((p) => p + 1)} disabled={!hasNextPage || loading}>
+            Вперёд
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

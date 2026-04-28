@@ -51,6 +51,12 @@ export function QuestCreatePage() {
   const canCreateQuest = title.trim().length >= 5 && description.trim().length >= 30 && cityArea.trim().length >= 1;
   const canAddCheckpoint = questId && cpTitle.trim().length > 0 && cpTaskText.trim().length >= 20 && !!cpPos;
   const canSubmit = questId && checkpoints.length >= 3 && status === "draft";
+  const submitDisabledReason = useMemo(() => {
+    if (questId === null) return "Сначала создайте черновик квеста.";
+    if (checkpoints.length < 3) return `Добавьте минимум 3 точки (сейчас: ${checkpoints.length}).`;
+    if (status !== "draft") return `Отправка доступна только для статуса draft (сейчас: ${status}).`;
+    return null;
+  }, [questId, checkpoints.length, status]);
 
   const coverHint = useMemo(() => (coverPath ? `Загружено: ${coverPath}` : "Обложка обязательна (≤ 5 МБ)."), [coverPath]);
 
@@ -328,6 +334,7 @@ export function QuestCreatePage() {
         <Button onClick={submitForModeration} disabled={!canSubmit}>
           Отправить на модерацию
         </Button>
+        {!canSubmit && submitDisabledReason && <div className="hint">{submitDisabledReason}</div>}
       </div>
     </div>
   );

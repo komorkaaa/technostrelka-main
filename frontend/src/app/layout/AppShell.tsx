@@ -8,22 +8,35 @@ function navCls({ isActive }: { isActive: boolean }) {
 
 export function AppShell() {
   const { status, user, logout } = useAuth();
+  const isModerator = user?.role === "moderator";
+  const isAuthenticated = status === "authenticated";
+  const homePath = "/";
 
   return (
     <div className="shell">
       <header className="topbar">
-        <Link className="brand" to="/">
+        <Link className="brand" to={homePath}>
           City Quests
         </Link>
         <nav className="nav">
-          <NavLink to="/" className={navCls} end>
-            Квесты
-          </NavLink>
-          <NavLink to="/leaderboard" className={navCls}>
-            Рейтинг
-          </NavLink>
-          {status === "authenticated" && (
+          {status !== "authenticated" && (
             <>
+              <NavLink to="/" className={navCls} end>
+                Квесты
+              </NavLink>
+              <NavLink to="/leaderboard" className={navCls}>
+                Рейтинг
+              </NavLink>
+            </>
+          )}
+          {isAuthenticated && (
+            <>
+              <NavLink to="/" className={navCls} end>
+                Квесты
+              </NavLink>
+              <NavLink to="/leaderboard" className={navCls}>
+                Рейтинг
+              </NavLink>
               <NavLink to="/create" className={navCls}>
                 Создать
               </NavLink>
@@ -35,11 +48,6 @@ export function AppShell() {
               </NavLink>
             </>
           )}
-          {status === "authenticated" && user?.role === "moderator" && (
-            <NavLink to="/moderation" className={navCls}>
-              Модерация
-            </NavLink>
-          )}
         </nav>
         <div className="topbarRight">
           {status !== "authenticated" ? (
@@ -49,6 +57,11 @@ export function AppShell() {
             </div>
           ) : (
             <div className="row" style={{ padding: 0 }}>
+              {isModerator && (
+                <Link to="/moderation">
+                  <Button variant="secondary">Окно модерации</Button>
+                </Link>
+              )}
               <div className="muted" style={{ fontSize: 13 }}>
                 {user?.nickname ? user.nickname : user?.email}
               </div>

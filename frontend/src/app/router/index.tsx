@@ -27,7 +27,7 @@ export function AppRouter() {
           <Route
             path="/create"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user", "moderator"]}>
                 <QuestCreatePage />
               </ProtectedRoute>
             }
@@ -35,7 +35,7 @@ export function AppRouter() {
           <Route
             path="/teams"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user", "moderator"]}>
                 <TeamsPage />
               </ProtectedRoute>
             }
@@ -43,7 +43,7 @@ export function AppRouter() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user", "moderator"]}>
                 <ProfilePage />
               </ProtectedRoute>
             }
@@ -51,7 +51,7 @@ export function AppRouter() {
           <Route
             path="/moderation"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["moderator"]} redirectTo="/">
                 <ModerationPage />
               </ProtectedRoute>
             }
@@ -59,7 +59,7 @@ export function AppRouter() {
           <Route
             path="/runs/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["user", "moderator"]}>
                 <RunPage />
               </ProtectedRoute>
             }

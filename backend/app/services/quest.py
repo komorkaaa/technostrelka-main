@@ -36,25 +36,25 @@ def _validate_checkpoint_payload(data: QuestCheckpointCreate) -> None:
 
     if task_type == "codeword":
         if not data.codeword_answer:
-            raise HTTPException(status_code=400, detail="codeword_answer is required")
+            raise HTTPException(status_code=400, detail="Нужно заполнить код-слово (codeword_answer)")
         return
 
     if not data.quiz_options or len(data.quiz_options) != 4:
-        raise HTTPException(status_code=400, detail="quiz_options must contain 4 options")
+        raise HTTPException(status_code=400, detail="Вариантов ответа должно быть ровно 4 (quiz_options)")
     if data.quiz_correct_index is None or data.quiz_correct_index < 0 or data.quiz_correct_index > 3:
-        raise HTTPException(status_code=400, detail="quiz_correct_index must be between 0 and 3")
+        raise HTTPException(status_code=400, detail="Правильный вариант должен быть от 0 до 3 (quiz_correct_index)")
     if not data.quiz_question:
-        raise HTTPException(status_code=400, detail="quiz_question is required for quiz")
+        raise HTTPException(status_code=400, detail="Нужно заполнить вопрос (quiz_question)")
 
 
 def add_checkpoint(db: Session, user: User, quest_id: int, data: QuestCheckpointCreate) -> QuestCheckpoint:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.author_user_id != user.id:
-        raise HTTPException(status_code=403, detail="Only quest author can modify checkpoints")
+        raise HTTPException(status_code=403, detail="Редактировать точки может только автор квеста")
     if quest.status != "draft":
-        raise HTTPException(status_code=409, detail="Checkpoints can be edited only in draft status")
+        raise HTTPException(status_code=409, detail="Точки можно редактировать только в статусе draft")
 
     _validate_checkpoint_payload(data)
     task_type = data.task_type
@@ -79,7 +79,7 @@ def add_checkpoint(db: Session, user: User, quest_id: int, data: QuestCheckpoint
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=409, detail="order_index must be unique within quest")
+        raise HTTPException(status_code=409, detail="Номер точки (order_index) должен быть уникальным в квесте")
     db.refresh(checkpoint)
     return checkpoint
 
@@ -87,15 +87,15 @@ def add_checkpoint(db: Session, user: User, quest_id: int, data: QuestCheckpoint
 def submit_quest_for_moderation(db: Session, user: User, quest_id: int) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.author_user_id != user.id:
-        raise HTTPException(status_code=403, detail="Only quest author can submit quest")
+        raise HTTPException(status_code=403, detail="Отправить квест может только автор")
     if quest.status != "draft":
-        raise HTTPException(status_code=409, detail="Only draft quest can be submitted")
+        raise HTTPException(status_code=409, detail="Отправить на модерацию можно только квест в статусе draft")
 
     checkpoints_count = db.query(QuestCheckpoint).filter(QuestCheckpoint.quest_id == quest.id).count()
     if checkpoints_count < 3:
-        raise HTTPException(status_code=400, detail="Quest must contain at least 3 checkpoints")
+        raise HTTPException(status_code=400, detail="Квест должен содержать минимум 3 точки")
 
     quest.status = "moderation"
     quest.updated_at = datetime.utcnow()
@@ -124,7 +124,7 @@ def list_published_quests(
     lat: float | None = None,
     lon: float | None = None,
     radius_m: float | None = None,
-) -> list[Quest]:
+) -> tuple[list[Quest], bool]:
     offset = (page - 1) * 10
 
     q = db.query(Quest).filter(Quest.status == "published")
@@ -137,16 +137,16 @@ def list_published_quests(
     if difficulty_preset:
         rng = _difficulty_range_for_preset(difficulty_preset)
         if not rng:
-            raise HTTPException(status_code=400, detail="Invalid difficulty_preset")
+            raise HTTPException(status_code=400, detail="Некорректный preset сложности")
         lo, hi = rng
         q = q.filter(Quest.difficulty >= lo, Quest.difficulty <= hi)
 
     # Nearby filter: by start checkpoint (order_index=1).
     if lat is not None or lon is not None or radius_m is not None:
         if lat is None or lon is None or radius_m is None:
-            raise HTTPException(status_code=400, detail="lat, lon and radius_m must be provided together")
+            raise HTTPException(status_code=400, detail="lat, lon и radius_m должны быть переданы вместе")
         if radius_m <= 0:
-            raise HTTPException(status_code=400, detail="radius_m must be > 0")
+            raise HTTPException(status_code=400, detail="radius_m должен быть больше 0")
 
         start_cp = QuestCheckpoint
         q = q.join(
@@ -185,18 +185,20 @@ def list_published_quests(
 
         q = q.filter(distance_m <= radius_m)
 
-    return (
+    rows = (
         q.order_by(Quest.created_at.desc())
         .offset(offset)
-        .limit(10)
+        .limit(11)
         .all()
     )
+    has_next = len(rows) > 10
+    return rows[:10], has_next
 
 
 def get_published_quest_with_checkpoints(db: Session, quest_id: int) -> tuple[Quest, list[QuestCheckpoint]]:
     quest = db.get(Quest, quest_id)
     if not quest or quest.status != "published":
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
 
     checkpoints = (
         db.query(QuestCheckpoint)
@@ -219,9 +221,9 @@ def list_moderation_quests(db: Session) -> list[Quest]:
 def approve_quest(db: Session, quest_id: int) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.status != "moderation":
-        raise HTTPException(status_code=409, detail="Only moderation quest can be approved")
+        raise HTTPException(status_code=409, detail="Одобрить можно только квест в статусе moderation")
 
     quest.status = "published"
     quest.reject_reason = None
@@ -235,9 +237,9 @@ def approve_quest(db: Session, quest_id: int) -> Quest:
 def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.status != "moderation":
-        raise HTTPException(status_code=409, detail="Only moderation quest can be rejected")
+        raise HTTPException(status_code=409, detail="Отклонить можно только квест в статусе moderation")
 
     quest.status = "rejected"
     quest.reject_reason = reason.strip()
@@ -250,11 +252,11 @@ def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
 def archive_quest(db: Session, user: User, quest_id: int) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.author_user_id != user.id:
-        raise HTTPException(status_code=403, detail="Only quest author can archive quest")
+        raise HTTPException(status_code=403, detail="Архивировать квест может только автор")
     if quest.status != "published":
-        raise HTTPException(status_code=409, detail="Only published quest can be archived")
+        raise HTTPException(status_code=409, detail="Архивировать можно только опубликованный квест")
 
     quest.status = "archived"
     quest.updated_at = datetime.utcnow()
@@ -266,9 +268,9 @@ def archive_quest(db: Session, user: User, quest_id: int) -> Quest:
 def hide_quest(db: Session, quest_id: int) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.status != "published":
-        raise HTTPException(status_code=409, detail="Only published quest can be hidden")
+        raise HTTPException(status_code=409, detail="Скрыть можно только опубликованный квест")
 
     quest.status = "hidden"
     quest.updated_at = datetime.utcnow()
@@ -280,21 +282,21 @@ def hide_quest(db: Session, quest_id: int) -> Quest:
 def set_quest_cover(db: Session, user: User, quest_id: int, file: UploadFile) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest not found")
+        raise HTTPException(status_code=404, detail="Квест не найден")
     if quest.author_user_id != user.id:
-        raise HTTPException(status_code=403, detail="Only quest author can set cover")
+        raise HTTPException(status_code=403, detail="Загрузить обложку может только автор")
     if quest.status != "draft":
-        raise HTTPException(status_code=409, detail="Cover can be set only in draft status")
+        raise HTTPException(status_code=409, detail="Обложку можно загрузить только в статусе draft")
 
     content_type = (file.content_type or "").lower()
     if not content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Cover must be an image")
+        raise HTTPException(status_code=400, detail="Обложка должна быть изображением")
 
     original_name = (file.filename or "cover").strip()
     suffix = Path(original_name).suffix.lower()
     if suffix not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
         # Keep it simple for MVP; prevents tricky content types masquerading as images.
-        raise HTTPException(status_code=400, detail="Unsupported image format")
+        raise HTTPException(status_code=400, detail="Неподдерживаемый формат изображения")
 
     upload_dir = Path(settings.media_dir_path)
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -314,7 +316,7 @@ def set_quest_cover(db: Session, user: User, quest_id: int, file: UploadFile) ->
                     dest_path.unlink(missing_ok=True)
                 except Exception:
                     pass
-                raise HTTPException(status_code=400, detail="Cover file is too large (max 5MB)")
+                raise HTTPException(status_code=400, detail="Слишком большой файл обложки (макс. 5 МБ)")
             out.write(chunk)
 
     quest.cover_path = f"/uploads/{filename}"
