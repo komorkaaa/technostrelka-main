@@ -140,13 +140,22 @@ export function AppShell() {
               </div>
             )}
 
-            <nav className="drawerList">
+            <nav className="drawerList" aria-label="Разделы">
               {drawerItems.map((item) => (
-                <NavLink key={item.key} to={item.to} className="drawerItem" onClick={() => setDrawerOpen(false)} end={item.to === "/"}>
+                <NavLink
+                  key={item.key}
+                  to={item.to}
+                  className="drawerItem"
+                  onClick={() => setDrawerOpen(false)}
+                  end={item.to === "/"}
+                >
                   {item.label}
                 </NavLink>
               ))}
-              {status === "authenticated" && (
+            </nav>
+
+            {status === "authenticated" && (
+              <div className="drawerBottom">
                 <button
                   type="button"
                   className="drawerItem danger"
@@ -157,8 +166,8 @@ export function AppShell() {
                 >
                   Выйти
                 </button>
-              )}
-            </nav>
+              </div>
+            )}
           </aside>
         </div>
       )}

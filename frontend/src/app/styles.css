@@ -325,7 +325,7 @@ a:hover {
   box-shadow: var(--shadow);
   padding: 14px 12px 16px;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto 1fr auto;
   gap: 12px;
   animation: drawerIn 200ms ease-out both;
 }
@@ -382,6 +382,11 @@ a:hover {
   align-content: start;
   overflow: auto;
   padding-right: 4px;
+}
+
+.drawerBottom {
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
 }
 
 .drawerItem {
@@ -445,6 +450,11 @@ button.listCard {
   }
   .modalCard {
     backdrop-filter: none;
+  }
+
+  body::before {
+    animation: none;
+    filter: none;
   }
 }
 
