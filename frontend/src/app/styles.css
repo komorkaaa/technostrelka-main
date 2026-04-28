@@ -271,6 +271,43 @@ input[type="file"] {
   box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.12);
 }
 
+.suggestField {
+  position: relative;
+}
+
+.suggestDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15, 20, 40, 0.96);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.suggestItem {
+  width: 100%;
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .btn {
   height: 42px;
   border-radius: 12px;

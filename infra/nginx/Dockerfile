@@ -5,8 +5,10 @@ WORKDIR /app
 
 ARG VITE_BUILD_REF=local
 ARG VITE_BUILD_TIME=unknown
+ARG VITE_YANDEX_SUGGEST_API_KEY=
 ENV VITE_BUILD_REF=$VITE_BUILD_REF
 ENV VITE_BUILD_TIME=$VITE_BUILD_TIME
+ENV VITE_YANDEX_SUGGEST_API_KEY=$VITE_YANDEX_SUGGEST_API_KEY
 
 COPY frontend/package.json /app/frontend/package.json
 COPY frontend/tsconfig.json /app/frontend/tsconfig.json

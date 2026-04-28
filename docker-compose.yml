@@ -46,6 +46,7 @@ services:
       args:
         VITE_BUILD_REF: ${VITE_BUILD_REF:-local}
         VITE_BUILD_TIME: ${VITE_BUILD_TIME:-unknown}
+        VITE_YANDEX_SUGGEST_API_KEY: ${VITE_YANDEX_SUGGEST_API_KEY:-}
     restart: unless-stopped
     env_file:
       - .env
