@@ -1,6 +1,7 @@
+import re
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 AgeGroup = Literal["10-11", "12-13", "14-15", "16-17", "18+"]
@@ -9,6 +10,15 @@ UserRole = Literal["user", "moderator"]
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not (8 <= len(value) <= 128):
+            raise ValueError("Пароль должен содержать от 8 до 128 символов")
+        if not re.fullmatch(r"[A-Za-z0-9]+", value):
+            raise ValueError("Пароль не должен содержать пробелы и спецсимволы")
+        return value
 
 class UserLogin(BaseModel):
     # For MVP we allow demo-moderator login "moderator" (non-email).
@@ -32,8 +42,17 @@ class UserOut(BaseModel):
 
 class AdminUserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
     role: UserRole = "user"
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not (8 <= len(value) <= 128):
+            raise ValueError("Пароль должен содержать от 8 до 128 символов")
+        if not re.fullmatch(r"[A-Za-z0-9]+", value):
+            raise ValueError("Пароль не должен содержать пробелы и спецсимволы")
+        return value
 
 
 class AdminUserRoleUpdate(BaseModel):
