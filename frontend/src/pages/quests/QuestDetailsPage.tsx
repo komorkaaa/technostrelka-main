@@ -183,6 +183,7 @@ export function QuestDetailsPage() {
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <span className="pill">Сложность {quest.difficulty}</span>
           <span className="pill">{quest.duration_minutes} мин</span>
+          <span className="pill">{quest.route_length_meters} м</span>
           <span className="pill">Точек: {quest.checkpoints.length}</span>
         </div>
         {user?.role === "moderator" && (

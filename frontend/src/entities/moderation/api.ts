@@ -8,6 +8,7 @@ export type ModerationQuestItem = {
   city_area: string;
   difficulty: number;
   duration_minutes: number;
+  route_length_meters: number;
   rules?: string | null;
   status: string;
   created_at: string;

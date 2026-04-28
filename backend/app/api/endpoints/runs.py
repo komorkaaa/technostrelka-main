@@ -44,6 +44,8 @@ def get_run_endpoint(
             "mode": state["run"].mode,
             "status": state["run"].status,
             "score_total": state["run"].score_total,
+            "started_at": state["run"].started_at,
+            "finished_at": state["run"].finished_at,
             "progress": state["progress_text"],
             "current_checkpoint": (
                 {

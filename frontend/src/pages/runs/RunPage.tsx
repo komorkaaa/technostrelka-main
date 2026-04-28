@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { ApiError } from "@/shared/api/types";
 import { runApi } from "@/entities/run/api";
@@ -12,6 +12,8 @@ import { Select } from "@/shared/ui/Select";
 import { QuestMap } from "@/shared/map/QuestMap";
 import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 import { useToast } from "@/shared/ui/Toast";
+
+const COMPLETED_QUESTS_STORAGE_KEY = "completedQuestIds";
 
 function parseProgress(progress: string) {
   const [a, b] = progress.split("/");
@@ -35,6 +37,22 @@ function cpStatusLabel(s: string) {
   return s;
 }
 
+function formatDuration(startedAt?: string | null, finishedAt?: string | null) {
+  if (!startedAt || !finishedAt) return "—";
+  const startMs = Date.parse(startedAt);
+  const endMs = Date.parse(finishedAt);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return "—";
+
+  const totalSec = Math.floor((endMs - startMs) / 1000);
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+
+  if (hours > 0) return `${hours} ч ${minutes} мин ${seconds} сек`;
+  if (minutes > 0) return `${minutes} мин ${seconds} сек`;
+  return `${seconds} сек`;
+}
+
 export function RunPage() {
   const { id } = useParams();
   const runId = Number(id);
@@ -48,8 +66,26 @@ export function RunPage() {
 
   const [codeword, setCodeword] = useState("");
   const [quizIndex, setQuizIndex] = useState<string>("0");
+  const [showCongrats, setShowCongrats] = useState(false);
+  const hadFinishedRef = useRef(false);
+
+  function rememberCompletedQuest(questId: number) {
+    try {
+      const raw = localStorage.getItem(COMPLETED_QUESTS_STORAGE_KEY);
+      const current = new Set<number>(
+        (raw ? (JSON.parse(raw) as unknown[]) : [])
+          .map((x) => Number(x))
+          .filter((x) => Number.isFinite(x) && x > 0)
+      );
+      current.add(questId);
+      localStorage.setItem(COMPLETED_QUESTS_STORAGE_KEY, JSON.stringify([...current]));
+    } catch {
+      // Ignore storage errors (private mode, quota, disabled storage).
+    }
+  }
 
   const progress = useMemo(() => (run ? parseProgress(run.progress) : { passed: 0, total: 0 }), [run]);
+  const finishedDurationText = useMemo(() => formatDuration(run?.started_at, run?.finished_at), [run?.started_at, run?.finished_at]);
 
   const statusByOrder = useMemo(() => {
     if (!quest || !run) return undefined;
@@ -87,6 +123,15 @@ export function RunPage() {
     void reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
+
+  useEffect(() => {
+    const isFinished = run?.status === "finished";
+    if (isFinished && !hadFinishedRef.current) {
+      setShowCongrats(true);
+      if (run?.quest_id) rememberCompletedQuest(run.quest_id);
+    }
+    hadFinishedRef.current = isFinished;
+  }, [run?.status]);
 
   async function submit() {
     if (!run?.current_checkpoint) return;
@@ -146,7 +191,7 @@ export function RunPage() {
   if (!run || !quest) return null;
 
   return (
-    <div className="card wide">
+    <div className="card wide" style={{ position: "relative" }}>
       <div className="cardHeader">
         <h1>Сессия #{run.id}</h1>
         <p className="muted">
@@ -235,6 +280,26 @@ export function RunPage() {
           </div>
         ))}
       </div>
+
+      {showCongrats && (
+        <div className="congratsOverlay" role="dialog" aria-modal="true" aria-label="Поздравление с завершением квеста">
+          <div className="congratsModal">
+            <h2 style={{ margin: 0, fontSize: 24 }}>Поздравляем!</h2>
+            <p className="muted" style={{ margin: "6px 0 0" }}>
+              Квест успешно пройден. Отличная работа!
+            </p>
+            <p className="muted" style={{ margin: "4px 0 0" }}>
+              Время прохождения: <span className="mono">{finishedDurationText}</span>
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+              <Button onClick={() => setShowCongrats(false)}>Продолжить</Button>
+              <Button variant="secondary" onClick={() => nav("/")}>
+                К списку квестов
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
