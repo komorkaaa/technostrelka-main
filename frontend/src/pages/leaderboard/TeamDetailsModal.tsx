@@ -27,12 +27,12 @@ export function TeamDetailsModal(props: Props) {
             <span className="pill">Забеги: {details.finished_runs}</span>
           </div>
         </div>
-        <div className="form" style={{ maxHeight: "60vh", overflow: "auto" }}>
+        <div className="form" style={{ maxHeight: "60vh", overflow: "auto", alignContent: "start" }}>
           {details.members.length === 0 ? (
             <div className="hint">У команды пока нет участников.</div>
           ) : (
             details.members.map((member, idx) => (
-              <div key={member.id} className="card" style={{ width: "100%", padding: 12 }}>
+              <div key={member.id} className="listCard">
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                   <div style={{ fontWeight: 700 }}>
                     {idx + 1}. {member.nickname || member.email}

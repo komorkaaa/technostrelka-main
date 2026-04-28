@@ -3,6 +3,8 @@
   --theme-wave-y: 50vh;
   --theme-dur: 520ms;
   --mobile-nav-h: 64px;
+  /* Optional background image (kept disabled by default) */
+  --bg-photo: none;
   --bg0: #0b1020;
   --bg1: #111a33;
   --card: rgba(255, 255, 255, 0.06);
@@ -86,6 +88,18 @@ body,
   height: 100%;
 }
 
+html {
+  background:
+    var(--bg-photo),
+    radial-gradient(900px 500px at 20% 0%, var(--glow-a), transparent 60%),
+    radial-gradient(900px 500px at 90% 30%, var(--glow-b), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+  background-attachment: scroll;
+  background-repeat: no-repeat;
+  background-size: cover, auto, auto, auto;
+  background-position: center, 20% 0%, 90% 30%, 0 0;
+}
+
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-text);
@@ -114,12 +128,7 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
     "Segoe UI Emoji";
   color: var(--text);
-  background:
-    radial-gradient(900px 500px at 20% 0%, var(--glow-a), transparent 60%),
-    radial-gradient(900px 500px at 90% 30%, var(--glow-b), transparent 60%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-  background-attachment: scroll;
-  background-repeat: no-repeat;
+  background: transparent;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
@@ -184,10 +193,7 @@ body.theme-wave-active::after {
   }
 }
 
-html {
-  background: linear-gradient(180deg, var(--bg0), var(--bg1));
-  background-attachment: scroll;
-}
+/* (background is on html) */
 
 a {
   color: var(--accent);
@@ -390,8 +396,56 @@ a:hover {
   color: var(--text);
   text-decoration: none;
   font-weight: 750;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
   cursor: pointer;
   transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+button.drawerItem {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+}
+
+.listCard {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: border-color 220ms ease, background-color 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+button.listCard {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--border);
+  font: inherit;
+}
+
+.listCard:hover {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: var(--surface-soft-strong);
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  /* Reduce iOS/Android compositing artifacts ("black rectangles") */
+  .card {
+    backdrop-filter: none;
+  }
+  .topbar {
+    backdrop-filter: none;
+  }
+  .modalCard {
+    backdrop-filter: none;
+  }
 }
 
 .drawerItem:hover {
