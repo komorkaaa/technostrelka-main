@@ -28,7 +28,13 @@ export function QuestMap({
     return start ? ([start.lat, start.lon] as [number, number]) : ([56.3269, 44.0059] as [number, number]);
   }, [checkpoints]);
 
-  const points = useMemo(() => checkpoints.map((cp) => ({ cp, st: statusByOrder?.[cp.order_index] ?? "locked" })), [checkpoints, statusByOrder]);
+  const points = useMemo(
+    () =>
+      [...checkpoints]
+        .sort((a, b) => a.order_index - b.order_index)
+        .map((cp) => ({ cp, st: statusByOrder?.[cp.order_index] ?? "locked" })),
+    [checkpoints, statusByOrder]
+  );
 
   function fitMapToViewport() {
     const map = mapInstanceRef.current;
@@ -78,6 +84,7 @@ export function QuestMap({
       const collection = new ymaps.GeoObjectCollection();
       map.geoObjects.add(collection);
       collectionRef.current = collection;
+      setMapReady(true);
       restoreMapContainerSize();
       fitMapToViewport();
     });
@@ -92,6 +99,7 @@ export function QuestMap({
 
     return () => {
       disposed = true;
+      setMapReady(false);
       window.removeEventListener("resize", handleViewportChange);
       document.removeEventListener("fullscreenchange", handleViewportChange);
       if (mapInstanceRef.current) {
@@ -110,16 +118,52 @@ export function QuestMap({
     const map = mapInstanceRef.current;
     collection.removeAll();
 
+    const coords: [number, number][] = [];
     for (const { cp, st } of points) {
+      const lat = Number(cp.lat);
+      const lon = Number(cp.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
       const preset = st === "passed" ? "islands#greenDotIcon" : st === "active" ? "islands#blueDotIcon" : "islands#grayDotIcon";
       const balloon = `<div><div style="font-weight:700">${cp.order_index}. ${cp.title}</div><div style="font-size:12px;opacity:.8">Тип: ${taskTypeLabel(cp.task_type)}</div></div>`;
-      const pm = new ymaps.Placemark([cp.lat, cp.lon], { balloonContent: balloon }, { preset });
+      const pm = new ymaps.Placemark([lat, lon], { balloonContent: balloon }, { preset });
       collection.add(pm);
+      coords.push([lat, lon]);
     }
 
-    mapInstanceRef.current.setCenter(center, mapInstanceRef.current.getZoom(), { duration: 200 });
+    if (coords.length > 1) {
+      const routeLine = new ymaps.Polyline(
+        coords,
+        {},
+        {
+          strokeColor: "#7dd3fc",
+          strokeWidth: 4,
+          strokeOpacity: 0.75,
+        }
+      );
+      collection.add(routeLine);
+
+      const lats = coords.map((c) => c[0]);
+      const lons = coords.map((c) => c[1]);
+      map.setBounds(
+        [
+          [Math.min(...lats), Math.min(...lons)],
+          [Math.max(...lats), Math.max(...lons)],
+        ],
+        { checkZoomRange: true, zoomMargin: 32 }
+      );
+      fitMapToViewport();
+      return;
+    }
+
+    if (coords.length === 1) {
+      map.setCenter(coords[0], 14, { duration: 200 });
+      fitMapToViewport();
+      return;
+    }
+
+    map.setCenter(center, 12, { duration: 200 });
     fitMapToViewport();
-  }, [points, center]);
+  }, [points, center, mapReady]);
 
   return (
     <div ref={frameRef} className="mapFrame">

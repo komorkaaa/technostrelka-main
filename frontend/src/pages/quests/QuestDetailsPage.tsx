@@ -204,13 +204,13 @@ export function QuestDetailsPage() {
 
       {error && <ApiErrorBox error={error} />}
 
-      <div className="cardFooter" style={{ justifyContent: "space-between" }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button onClick={startSolo} disabled={!canStart} size="lg">
+      <div className="cardFooter questActions">
+        <div className="questActionsMain">
+          <Button onClick={startSolo} disabled={!canStart} size="lg" className="questActionBtn">
             Начать соло
           </Button>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <Select value={teamId} onChange={(e) => setTeamId(e.target.value)} disabled={!canStart} style={{ width: "min(260px, 100%)" }}>
+          <div className="questActionsTeam">
+            <Select value={teamId} onChange={(e) => setTeamId(e.target.value)} disabled={!canStart} className="questTeamSelect">
               <option value="">Команда…</option>
               {teams.map((t) => (
                 <option key={t.id} value={String(t.id)}>
@@ -218,7 +218,7 @@ export function QuestDetailsPage() {
                 </option>
               ))}
             </Select>
-            <Button onClick={startTeam} disabled={!canStart} size="lg" variant="secondary">
+            <Button onClick={startTeam} disabled={!canStart} size="lg" variant="secondary" className="questActionBtn">
               Начать командой
             </Button>
           </div>
