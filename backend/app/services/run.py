@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache_delete
 from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.run import RunCheckpointProgress, RunSession
@@ -13,6 +14,7 @@ from app.schemas.run import RunStartRequest, RunSubmitRequest
 
 POINTS_PER_CHECKPOINT = 10
 POINTS_FOR_FINISH = 50
+LEADERBOARD_TEAMS_CACHE_KEY = "leaderboard:teams:v1"
 
 
 def _get_ordered_checkpoints(db: Session, quest_id: int) -> list[QuestCheckpoint]:
@@ -235,6 +237,10 @@ def submit_run_answer(db: Session, user: User, run_id: int, data: RunSubmitReque
 
     db.commit()
     db.refresh(run)
+
+    if run.mode == "team" and run.status == "finished":
+        cache_delete(LEADERBOARD_TEAMS_CACHE_KEY)
+
     return {"correct": True, "status": run.status}
 
 

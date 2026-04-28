@@ -9,12 +9,16 @@ import { Select } from "@/shared/ui/Select";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
 
+const COMPLETED_QUESTS_STORAGE_KEY = "completedQuestIds";
+
 export function QuestsPage() {
   const [items, setItems] = useState<QuestListItem[]>([]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const [completedQuestIds, setCompletedQuestIds] = useState<Set<number>>(new Set());
+  const [failedCoverIds, setFailedCoverIds] = useState<Set<number>>(new Set());
 
   const [minDuration, setMinDuration] = useState<string>("");
   const [maxDuration, setMaxDuration] = useState<string>("");
@@ -53,6 +57,24 @@ export function QuestsPage() {
     })();
   }, [params]);
 
+  useEffect(() => {
+    function readCompletedQuests() {
+      try {
+        const raw = localStorage.getItem(COMPLETED_QUESTS_STORAGE_KEY);
+        const ids = (raw ? (JSON.parse(raw) as unknown[]) : [])
+          .map((x) => Number(x))
+          .filter((x) => Number.isFinite(x) && x > 0);
+        setCompletedQuestIds(new Set(ids));
+      } catch {
+        setCompletedQuestIds(new Set());
+      }
+    }
+
+    readCompletedQuests();
+    window.addEventListener("focus", readCompletedQuests);
+    return () => window.removeEventListener("focus", readCompletedQuests);
+  }, []);
+
   function requestGeo() {
     if (!navigator.geolocation) {
       setError({ status: 0, code: "GEO_UNAVAILABLE", message: "Геолокация недоступна в этом браузере" });
@@ -67,6 +89,14 @@ export function QuestsPage() {
 
   const hasPrevPage = page > 1;
   const showPagination = hasPrevPage || hasNextPage;
+
+  function coverUrl(path?: string | null) {
+    if (!path) return null;
+    const trimmed = path.trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  }
 
   return (
     <div className="card wide">
@@ -130,15 +160,36 @@ export function QuestsPage() {
       ) : (
         <div className="form" style={{ gap: 10 }}>
           {items.map((q) => (
-            <Link key={q.id} to={`/quests/${q.id}`} className="card" style={{ width: "100%", padding: 14 }}>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                <div style={{ fontWeight: 750 }}>{q.title}</div>
-                <span className="pill">{q.city_area}</span>
-                <span className="pill">Сложность {q.difficulty}</span>
-                <span className="pill">{q.duration_minutes} мин</span>
+            <Link
+              key={q.id}
+              to={`/quests/${q.id}`}
+              className={`card questListCard ${completedQuestIds.has(q.id) ? "questCardCompleted" : ""}`}
+              style={{ width: "100%" }}
+            >
+              <div className="questListContent">
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <div style={{ fontWeight: 750 }}>{q.title}</div>
+                  <span className="pill">{q.city_area}</span>
+                  <span className="pill">Сложность {q.difficulty}</span>
+                  <span className="pill">{q.duration_minutes} мин</span>
+                  <span className="pill">{q.route_length_meters} м</span>
+                  {completedQuestIds.has(q.id) && <span className="pill questDonePill">Пройден</span>}
+                </div>
+                <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
+                  {q.description}
+                </div>
               </div>
-              <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
-                {q.description}
+              <div className="questListCoverWrap" aria-hidden="true">
+                {coverUrl(q.cover_path) && !failedCoverIds.has(q.id) ? (
+                  <img
+                    className="questListCover"
+                    src={coverUrl(q.cover_path) ?? ""}
+                    alt=""
+                    onError={() => setFailedCoverIds((prev) => new Set(prev).add(q.id))}
+                  />
+                ) : (
+                  <div className="questListCover questListCoverFallback" />
+                )}
               </div>
             </Link>
           ))}

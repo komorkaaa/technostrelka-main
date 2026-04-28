@@ -404,7 +404,7 @@ input[type="file"] {
   transform: translateY(-50%);
   border: 0;
   background: transparent;
-  color: #fff;
+  color: var(--text);
   font-size: 12px;
   cursor: pointer;
   padding: 4px;
@@ -419,6 +419,19 @@ input[type="file"] {
 .passwordToggleIcon {
   width: 18px;
   height: 18px;
+}
+
+/* Hide native browser password reveal/clear controls to avoid duplicate "eye" icon. */
+.passwordInput::-ms-reveal,
+.passwordInput::-ms-clear {
+  display: none;
+}
+
+.passwordInput::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
 }
 
 .passwordToggle:focus-visible {
@@ -887,6 +900,102 @@ a.card:hover {
   text-decoration: none;
 }
 
+.questCardCompleted {
+  border-color: rgba(52, 211, 153, 0.38);
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.08), var(--card));
+}
+
+.questDonePill {
+  border-color: rgba(52, 211, 153, 0.42);
+  background: rgba(52, 211, 153, 0.14);
+  color: rgba(190, 252, 226, 0.95);
+}
+
+.questListCard {
+  position: relative;
+  display: block;
+  padding: 14px;
+  min-height: 128px;
+}
+
+.questListContent {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.questListCoverWrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(36%, 300px);
+  overflow: hidden;
+  border: 0;
+}
+
+.questListCover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Smooth transparency fade from the left edge (towards text) */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 14%,
+    rgba(0, 0, 0, 0.28) 28%,
+    rgba(0, 0, 0, 0.58) 46%,
+    rgba(0, 0, 0, 0.86) 64%,
+    rgba(0, 0, 0, 1) 78%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 14%,
+    rgba(0, 0, 0, 0.28) 28%,
+    rgba(0, 0, 0, 0.58) 46%,
+    rgba(0, 0, 0, 0.86) 64%,
+    rgba(0, 0, 0, 1) 78%,
+    rgba(0, 0, 0, 1) 100%
+  );
+}
+
+.questListCoverFallback {
+  background:
+    radial-gradient(180px 120px at 20% 20%, rgba(125, 211, 252, 0.35), transparent 70%),
+    radial-gradient(180px 120px at 80% 40%, rgba(167, 139, 250, 0.3), transparent 70%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.65), rgba(30, 41, 59, 0.72));
+}
+
+:root[data-theme="light"] .questListCoverFallback {
+  background:
+    radial-gradient(180px 120px at 20% 20%, rgba(125, 211, 252, 0.18), transparent 70%),
+    radial-gradient(180px 120px at 80% 40%, rgba(167, 139, 250, 0.14), transparent 70%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.76));
+}
+
+/* No overlay fade: we use mask-image on the cover itself */
+
+:root[data-theme="light"] .questCardCompleted {
+  border-color: rgba(125, 211, 252, 0.5);
+  background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), var(--card));
+}
+
+:root[data-theme="light"] .questDonePill {
+  border-color: rgba(125, 211, 252, 0.55);
+  background: rgba(125, 211, 252, 0.24);
+  color: rgba(12, 74, 110, 0.92);
+}
+
+
+@media (min-width: 860px) {
+  .questListCard {
+    padding-right: calc(min(36%, 300px) + 14px);
+  }
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -928,6 +1037,28 @@ a.card:hover {
   white-space: pre-wrap;
 }
 
+.congratsOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 7, 18, 0.58);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 220ms ease-out both;
+}
+
+.congratsModal {
+  width: min(460px, 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  padding: 18px 18px 16px;
+  animation: popIn 260ms ease-out both;
+}
+
 .spinnerWrap {
   display: grid;
   gap: 10px;
@@ -946,5 +1077,25 @@ a.card:hover {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

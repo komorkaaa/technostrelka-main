@@ -9,6 +9,7 @@ from app.schemas.moderation import ModerationRejectRequest
 from app.services.complaint import list_complaints, resolve_complaint
 from app.services.quest import (
     approve_quest,
+    get_route_length_meters,
     get_quest_with_checkpoints_for_moderation,
     hide_quest,
     list_moderation_quests,
@@ -42,6 +43,7 @@ def list_moderation_quests_endpoint(
                     "city_area": quest.city_area,
                     "difficulty": quest.difficulty,
                     "duration_minutes": quest.duration_minutes,
+                    "route_length_meters": get_route_length_meters(db, quest.id),
                     "status": quest.status,
                     "created_at": quest.created_at,
                 }
@@ -135,6 +137,7 @@ def get_quest_for_moderation_endpoint(
             "city_area": quest.city_area,
             "difficulty": quest.difficulty,
             "duration_minutes": quest.duration_minutes,
+            "route_length_meters": get_route_length_meters(db, quest.id),
             "rules": quest.rules,
             "status": quest.status,
             "reject_reason": quest.reject_reason,
@@ -177,6 +180,7 @@ def update_quest_for_moderation_endpoint(
             "city_area": quest.city_area,
             "difficulty": quest.difficulty,
             "duration_minutes": quest.duration_minutes,
+            "route_length_meters": get_route_length_meters(db, quest.id),
             "rules": quest.rules,
             "status": quest.status,
             "updated_at": quest.updated_at,

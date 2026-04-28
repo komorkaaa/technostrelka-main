@@ -7,6 +7,8 @@ export type QuestListItem = {
   city_area: string;
   difficulty: number;
   duration_minutes: number;
+  route_length_meters: number;
+  cover_path?: string | null;
   status: string;
   published_at?: string | null;
 };
@@ -32,6 +34,7 @@ export type QuestDetails = {
   city_area: string;
   difficulty: number;
   duration_minutes: number;
+  route_length_meters: number;
   rules?: string | null;
   cover_path?: string | null;
   status: string;

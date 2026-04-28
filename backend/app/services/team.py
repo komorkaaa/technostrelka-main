@@ -92,3 +92,40 @@ def list_my_teams(db: Session, user: User) -> list[dict]:
         }
         for team, role in rows
     ]
+
+
+def leave_team(db: Session, user: User, team_id: int) -> dict:
+    team = db.get(Team, team_id)
+    if not team:
+        raise HTTPException(status_code=404, detail="Команда не найдена")
+
+    membership = (
+        db.query(TeamMember)
+        .filter(TeamMember.team_id == team.id, TeamMember.user_id == user.id)
+        .first()
+    )
+    if not membership:
+        raise HTTPException(status_code=404, detail="Вы не состоите в этой команде")
+
+    db.delete(membership)
+    db.flush()
+
+    remaining_members = (
+        db.query(TeamMember)
+        .filter(TeamMember.team_id == team.id)
+        .order_by(TeamMember.joined_at.asc(), TeamMember.id.asc())
+        .all()
+    )
+
+    if not remaining_members:
+        db.delete(team)
+        db.commit()
+        return {"team_deleted": True, "team_id": team_id}
+
+    if team.owner_user_id == user.id:
+        new_owner = remaining_members[0]
+        team.owner_user_id = new_owner.user_id
+        new_owner.role = "owner"
+
+    db.commit()
+    return {"team_deleted": False, "team_id": team_id}

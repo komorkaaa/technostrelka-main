@@ -2,16 +2,56 @@ import secrets
 from pathlib import Path
 
 from datetime import datetime
+import math
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache_delete
 from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.user import User
 from app.schemas.quest import ModerationQuestUpdate, QuestCheckpointCreate, QuestCreate
+
+
+def _invalidate_public_quest_cache(quest_id: int) -> None:
+    cache_delete(f"quest:{quest_id}:public:v1")
+
+
+def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Great-circle distance between two points (meters).
+    Uses a fixed earth radius; good enough for city маршруты.
+    """
+    r = 6_371_000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+
+    a = math.sin(dphi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    return r * c
+
+
+def get_route_length_meters(db: Session, quest_id: int) -> int:
+    checkpoints = (
+        db.query(QuestCheckpoint)
+        .filter(QuestCheckpoint.quest_id == quest_id)
+        .order_by(QuestCheckpoint.order_index.asc())
+        .all()
+    )
+    if len(checkpoints) < 2:
+        return 0
+
+    total = 0.0
+    prev = checkpoints[0]
+    for cp in checkpoints[1:]:
+        total += _haversine_m(prev.lat, prev.lon, cp.lat, cp.lon)
+        prev = cp
+    return int(round(total))
 
 
 def create_quest(db: Session, user: User, data: QuestCreate) -> Quest:
@@ -269,6 +309,7 @@ def approve_quest(db: Session, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -284,6 +325,7 @@ def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -300,6 +342,7 @@ def archive_quest(db: Session, user: User, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -314,6 +357,7 @@ def hide_quest(db: Session, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 

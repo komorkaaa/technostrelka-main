@@ -46,6 +46,7 @@ export function QuestsModerationModal(props: Props) {
                     <span className="pill">Сложность {q.difficulty}</span>
                     <span className="pill">{q.duration_minutes} мин</span>
                     <span className="pill">{q.status === "hidden" ? "Скрытый" : "Видимый"}</span>
+                    <span className="pill">{q.route_length_meters} м</span>
                   </div>
                 </div>
                 <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
