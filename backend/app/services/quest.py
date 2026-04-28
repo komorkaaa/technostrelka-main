@@ -9,42 +9,15 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache_delete
 from app.core.config import settings
 from app.models.quest import Quest, QuestCheckpoint
 from app.models.user import User
 from app.schemas.quest import ModerationQuestUpdate, QuestCheckpointCreate, QuestCreate
 
 
-def calculate_route_length_meters(checkpoints: list[QuestCheckpoint]) -> int:
-    if len(checkpoints) < 2:
-        return 0
-
-    ordered = sorted(checkpoints, key=lambda c: c.order_index)
-    total = 0.0
-    r = 6_371_000.0
-
-    for prev, nxt in zip(ordered, ordered[1:]):
-        lat1 = math.radians(float(prev.lat))
-        lon1 = math.radians(float(prev.lon))
-        lat2 = math.radians(float(nxt.lat))
-        lon2 = math.radians(float(nxt.lon))
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-        a = math.sin(dlat / 2.0) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2.0) ** 2
-        c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
-        total += r * c
-
-    return int(round(total))
-
-
-def get_route_length_meters(db: Session, quest_id: int) -> int:
-    checkpoints = (
-        db.query(QuestCheckpoint)
-        .filter(QuestCheckpoint.quest_id == quest_id)
-        .order_by(QuestCheckpoint.order_index.asc())
-        .all()
-    )
-    return calculate_route_length_meters(checkpoints)
+def _invalidate_public_quest_cache(quest_id: int) -> None:
+    cache_delete(f"quest:{quest_id}:public:v1")
 
 
 def create_quest(db: Session, user: User, data: QuestCreate) -> Quest:
@@ -302,6 +275,7 @@ def approve_quest(db: Session, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -317,6 +291,7 @@ def reject_quest(db: Session, quest_id: int, reason: str) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -333,6 +308,7 @@ def archive_quest(db: Session, user: User, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 
@@ -347,6 +323,7 @@ def hide_quest(db: Session, quest_id: int) -> Quest:
     quest.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(quest)
+    _invalidate_public_quest_cache(quest.id)
     return quest
 
 

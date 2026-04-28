@@ -6,7 +6,7 @@ from app.dependencies.db import get_db
 from app.models.team import TeamMember
 from app.models.user import User
 from app.schemas.team import TeamCreate, TeamJoin
-from app.services.team import create_team, join_team_by_code, list_my_teams
+from app.services.team import create_team, join_team_by_code, leave_team, list_my_teams
 
 router = APIRouter()
 
@@ -64,3 +64,13 @@ def list_my_teams_endpoint(
 ):
     items = list_my_teams(db, user=user)
     return {"success": True, "data": {"items": items}}
+
+
+@router.post("/{team_id}/leave")
+def leave_team_endpoint(
+    team_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    result = leave_team(db, user=user, team_id=team_id)
+    return {"success": True, "data": result}
