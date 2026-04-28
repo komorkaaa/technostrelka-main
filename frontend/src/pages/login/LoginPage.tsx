@@ -15,6 +15,7 @@ export function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -53,7 +54,36 @@ export function LoginPage() {
           </label>
           <label className="label">
             Пароль
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Ваш пароль" />
+            <div className="passwordField">
+              <Input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                placeholder="Ваш пароль"
+                className="passwordInput"
+              />
+              <button
+                type="button"
+                className="passwordToggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                title={showPassword ? "Скрыть пароль" : "Показать пароль"}
+              >
+                <svg className="passwordToggleIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+                  {showPassword && (
+                    <path d="M4 4 20 20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  )}
+                </svg>
+              </button>
+            </div>
           </label>
 
           {error ? <ApiErrorBox error={error} /> : null}

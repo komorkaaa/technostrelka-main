@@ -344,6 +344,43 @@ input[type="file"] {
   box-shadow: var(--focus-ring);
 }
 
+.passwordField {
+  position: relative;
+}
+
+.passwordInput {
+  padding-right: 96px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+.passwordToggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.passwordToggleIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.passwordToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .suggestField {
   position: relative;
 }
