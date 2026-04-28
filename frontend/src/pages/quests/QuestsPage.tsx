@@ -87,6 +87,16 @@ export function QuestsPage() {
     );
   }
 
+  function resetFilters() {
+    setMinDuration("");
+    setMaxDuration("");
+    setPreset("");
+    setNearbyEnabled(false);
+    setRadiusM("2000");
+    setPos(null);
+    setPage(1);
+  }
+
   const hasPrevPage = page > 1;
   const showPagination = hasPrevPage || hasNextPage;
 
@@ -135,6 +145,9 @@ export function QuestsPage() {
           />
           Старт рядом со мной
         </label>
+        <Button className="btn secondary" onClick={resetFilters} style={{ height: 34, padding: "0 10px", fontSize: 12 }}>
+          Сбросить фильтры
+        </Button>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           {nearbyEnabled && (
             <>

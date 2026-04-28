@@ -5,6 +5,16 @@ const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL ?? "";
 
 let refreshInFlight: Promise<boolean> | null = null;
 
+function toNetworkApiError(error: unknown): ApiError {
+  const message = error instanceof Error ? error.message : "Ошибка сети";
+  return {
+    status: 0,
+    code: "NETWORK_ERROR",
+    message,
+    details: error,
+  };
+}
+
 function toApiError(status: number, body: unknown): ApiError {
   if (body && typeof body === "object" && "error" in body) {
     const err = (body as any).error;
@@ -73,11 +83,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const token = getAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (error) {
+    throw toNetworkApiError(error);
+  }
 
   if (res.status === 401) {
     const ok = await refreshOnce();
@@ -85,11 +100,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       const retryHeaders: Record<string, string> = { "Content-Type": "application/json" };
       const retryToken = getAccessToken();
       if (retryToken) retryHeaders.Authorization = `Bearer ${retryToken}`;
-      const retry = await fetch(`${API_BASE_URL}${path}`, {
-        method,
-        headers: retryHeaders,
-        body: body === undefined ? undefined : JSON.stringify(body),
-      });
+      let retry: Response;
+      try {
+        retry = await fetch(`${API_BASE_URL}${path}`, {
+          method,
+          headers: retryHeaders,
+          body: body === undefined ? undefined : JSON.stringify(body),
+        });
+      } catch (error) {
+        throw toNetworkApiError(error);
+      }
       return parseEnvelope<T>(retry);
     }
   }
@@ -106,11 +126,16 @@ export const api = {
     const token = getAccessToken();
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      method: "POST",
-      headers,
-      body: form,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE_URL}${path}`, {
+        method: "POST",
+        headers,
+        body: form,
+      });
+    } catch (error) {
+      throw toNetworkApiError(error);
+    }
 
     if (res.status === 401) {
       const ok = await refreshOnce();
@@ -118,11 +143,16 @@ export const api = {
         const retryHeaders: Record<string, string> = {};
         const retryToken = getAccessToken();
         if (retryToken) retryHeaders.Authorization = `Bearer ${retryToken}`;
-        const retry = await fetch(`${API_BASE_URL}${path}`, {
-          method: "POST",
-          headers: retryHeaders,
-          body: form,
-        });
+        let retry: Response;
+        try {
+          retry = await fetch(`${API_BASE_URL}${path}`, {
+            method: "POST",
+            headers: retryHeaders,
+            body: form,
+          });
+        } catch (error) {
+          throw toNetworkApiError(error);
+        }
         return parseEnvelope<T>(retry);
       }
     }

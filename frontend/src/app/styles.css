@@ -540,7 +540,7 @@ button.listCard {
   backdrop-filter: blur(10px);
   padding: 18px 18px 16px;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
   overflow-wrap: anywhere;
   margin-inline: auto;
   animation: fadeUp 240ms ease-out both;
@@ -596,6 +596,26 @@ h1 {
   min-width: 0;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease,
     background-color 360ms cubic-bezier(0.22, 1, 0.36, 1), color 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+select.input option,
+select.input optgroup {
+  background: var(--surface-strong);
+  color: var(--text);
 }
 
 input[type="file"] {
@@ -667,7 +687,7 @@ input[type="file"] {
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  z-index: 20;
+  z-index: 220;
   display: grid;
   gap: 4px;
   padding: 6px;
@@ -693,6 +713,47 @@ input[type="file"] {
 
 .suggestItem:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+
+.selectField {
+  width: 100%;
+}
+
+.selectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.selectTrigger:disabled {
+  cursor: not-allowed;
+}
+
+.selectChevron {
+  color: var(--muted);
+  transition: transform 140ms ease;
+}
+
+.selectChevron.open {
+  transform: rotate(180deg);
+}
+
+.selectDropdown {
+  max-height: 240px;
+  overflow: auto;
+}
+
+.selectItem.active {
+  background: rgba(125, 211, 252, 0.14);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+}
+
+.selectItem:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn {
@@ -1040,7 +1101,8 @@ input[type="file"] {
     border-left: 0;
     border-right: 0;
   }
-  .cardHeader {
+  .modalCard .cardHeader,
+  .usersModalCard .cardHeader {
     position: sticky;
     top: 0;
     z-index: 2;
