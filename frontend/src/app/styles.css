@@ -722,6 +722,36 @@ input[type="file"] {
   background: linear-gradient(135deg, rgba(125, 211, 252, 0.26), rgba(167, 139, 250, 0.2));
 }
 
+.questActions {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.questActionsMain {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.questActionsTeam {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1 1 420px;
+}
+
+.questActionBtn {
+  min-width: 170px;
+}
+
+.questTeamSelect {
+  min-width: 240px;
+  flex: 1 1 260px;
+}
+
 @media (max-width: 720px) {
   .topbar {
     grid-template-columns: 1fr;
@@ -730,6 +760,10 @@ input[type="file"] {
   .topbarRight {
     justify-self: start;
     justify-content: flex-start;
+  }
+  .questActionBtn,
+  .questTeamSelect {
+    width: 100%;
   }
 }
 
