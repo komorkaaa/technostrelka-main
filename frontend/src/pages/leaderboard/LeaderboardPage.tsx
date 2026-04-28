@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import type { ApiError } from "@/shared/api/types";
-import { leaderboardApi, type LeaderboardTeamItem } from "@/entities/leaderboard/api";
+import { leaderboardApi, type LeaderboardTeamDetails, type LeaderboardTeamItem } from "@/entities/leaderboard/api";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ApiErrorBox } from "@/shared/ui/ApiErrorBox";
+import { TeamDetailsModal } from "@/pages/leaderboard/TeamDetailsModal";
 
 export function LeaderboardPage() {
   const [items, setItems] = useState<LeaderboardTeamItem[]>([]);
+  const [selectedTeamDetails, setSelectedTeamDetails] = useState<LeaderboardTeamDetails | null>(null);
+  const [showTeamModal, setShowTeamModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -23,6 +26,17 @@ export function LeaderboardPage() {
       }
     })();
   }, []);
+
+  async function openTeam(teamId: number) {
+    setError(null);
+    try {
+      const details = await leaderboardApi.teamDetails(teamId);
+      setSelectedTeamDetails(details);
+      setShowTeamModal(true);
+    } catch (e) {
+      setError(e as ApiError);
+    }
+  }
 
   return (
     <div className="card wide">
@@ -42,7 +56,12 @@ export function LeaderboardPage() {
       ) : (
         <div className="form" style={{ gap: 10 }}>
           {items.map((t, idx) => (
-            <div key={t.team_id} className="card" style={{ width: "100%", padding: 12 }}>
+            <button
+              key={t.team_id}
+              className="card"
+              style={{ width: "100%", padding: 12, textAlign: "left", cursor: "pointer", color: "inherit" }}
+              onClick={() => void openTeam(t.team_id)}
+            >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontWeight: 800, minWidth: 0, overflowWrap: "anywhere" }}>
                   #{idx + 1} {t.team_name}
@@ -52,10 +71,15 @@ export function LeaderboardPage() {
                   <span className="pill">Забеги: {t.finished_runs}</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
+      <TeamDetailsModal
+        open={showTeamModal}
+        details={selectedTeamDetails}
+        onClose={() => setShowTeamModal(false)}
+      />
     </div>
   );
 }

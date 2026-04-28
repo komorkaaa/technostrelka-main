@@ -361,6 +361,20 @@ def hide_quest(db: Session, quest_id: int) -> Quest:
     return quest
 
 
+def unhide_quest(db: Session, quest_id: int) -> Quest:
+    quest = db.get(Quest, quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Квест не найден")
+    if quest.status != "hidden":
+        raise HTTPException(status_code=409, detail="Вернуть видимость можно только скрытому квесту")
+
+    quest.status = "published"
+    quest.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(quest)
+    return quest
+
+
 def set_quest_cover(db: Session, user: User, quest_id: int, file: UploadFile) -> Quest:
     quest = db.get(Quest, quest_id)
     if not quest:
