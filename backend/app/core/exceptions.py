@@ -5,15 +5,36 @@ from fastapi.exceptions import RequestValidationError
 
 from app.core.config import settings
 
+
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(_json_safe(v) for v in value)
+    if isinstance(value, BaseException):
+        return str(value)
+    return value
+
+
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    raw_errors = exc.errors()
+    safe_errors = _json_safe(raw_errors)
+    message = "Validation error"
+    if safe_errors and isinstance(safe_errors[0], dict):
+        first_msg = safe_errors[0].get("msg")
+        if isinstance(first_msg, str) and first_msg.strip():
+            message = first_msg
+
     return JSONResponse(
         status_code=422,
         content={
             "success": False,
             "error": {
                 "code": "VALIDATION_ERROR",
-                "message": "Validation error",
-                "details": exc.errors(),
+                "message": message,
+                "details": safe_errors,
             }
         },
     )
