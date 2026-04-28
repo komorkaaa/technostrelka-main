@@ -11,6 +11,7 @@ export function MapPicker({
   initialCenter?: [number, number];
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const placemarkRef = useRef<any>(null);
 
@@ -18,6 +19,38 @@ export function MapPicker({
     if (value) return [value.lat, value.lon] as [number, number];
     return initialCenter;
   }, [value, initialCenter]);
+
+  function fitMapToViewport() {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        try {
+          map.container.fitToViewport();
+        } catch {
+          // Ignore viewport sync failures during transient fullscreen transitions.
+        }
+      }, 0);
+    });
+  }
+
+  function restoreMapContainerSize() {
+    const mapElement = mapRef.current;
+    const frameElement = frameRef.current;
+    if (!mapElement || !frameElement) return;
+
+    mapElement.style.width = "100%";
+    mapElement.style.height = "100%";
+    mapElement.style.position = "absolute";
+    mapElement.style.inset = "0";
+    mapElement.style.left = "0";
+    mapElement.style.top = "0";
+
+    frameElement.style.width = "100%";
+    frameElement.style.height = "360px";
+    frameElement.style.minHeight = "360px";
+  }
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -39,6 +72,8 @@ export function MapPicker({
       });
 
       mapInstanceRef.current = map;
+      restoreMapContainerSize();
+      fitMapToViewport();
 
       if (value) {
         const pm = new ymaps.Placemark([value.lat, value.lon], {}, { preset: "islands#blueDotIcon" });
@@ -47,8 +82,18 @@ export function MapPicker({
       }
     });
 
+    const handleViewportChange = () => {
+      restoreMapContainerSize();
+      fitMapToViewport();
+    };
+
+    window.addEventListener("resize", handleViewportChange);
+    document.addEventListener("fullscreenchange", handleViewportChange);
+
     return () => {
       disposed = true;
+      window.removeEventListener("resize", handleViewportChange);
+      document.removeEventListener("fullscreenchange", handleViewportChange);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.destroy();
         mapInstanceRef.current = null;
@@ -69,7 +114,12 @@ export function MapPicker({
       placemarkRef.current.geometry.setCoordinates([value.lat, value.lon]);
     }
     map.setCenter([value.lat, value.lon], map.getZoom(), { duration: 200 });
+    fitMapToViewport();
   }, [value]);
 
-  return <div ref={mapRef} className="mapContainer" />;
+  return (
+    <div ref={frameRef} className="mapFrame">
+      <div ref={mapRef} className="mapContainer" />
+    </div>
+  );
 }

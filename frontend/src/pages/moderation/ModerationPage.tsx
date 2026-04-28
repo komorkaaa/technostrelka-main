@@ -212,7 +212,7 @@ export function ModerationPage() {
                         <span className="pill">{q.duration_minutes} мин</span>
                       </div>
                     </div>
-                    <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+                    <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                       {q.description}
                     </div>
                     <label className="label" style={{ marginTop: 10 }}>
@@ -249,7 +249,7 @@ export function ModerationPage() {
                       <div style={{ fontWeight: 750 }}>#{c.id}</div>
                       <span className="pill">{complaintStatusLabel(c.status)}</span>
                     </div>
-                    <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+                    <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                       {c.reason}
                     </div>
                     <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>

@@ -137,7 +137,7 @@ export function QuestsPage() {
                 <span className="pill">Сложность {q.difficulty}</span>
                 <span className="pill">{q.duration_minutes} мин</span>
               </div>
-              <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+              <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                 {q.description}
               </div>
             </Link>

@@ -193,7 +193,7 @@ export function QuestDetailsPage() {
       </div>
 
       <div className="form">
-        <div className="muted">{quest.description}</div>
+        <div className="muted descriptionText">{quest.description}</div>
         {quest.rules && (
           <div className="errorBox" style={{ borderColor: "rgba(125, 211, 252, 0.25)", background: "rgba(125, 211, 252, 0.06)" }}>
             <div className="errorTitle">Правила / предупреждения</div>
@@ -243,16 +243,16 @@ export function QuestDetailsPage() {
               </div>
               <span className="pill">{taskTypeLabel(cp.task_type)}</span>
             </div>
-            <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+            <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
               {cp.task_text}
             </div>
             {cp.hint && (
-              <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+              <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 8 }}>
                 Подсказка: {cp.hint}
               </div>
             )}
             {cp.safety_rules && (
-              <div className="muted" style={{ fontSize: 13, marginTop: 6 }}>
+              <div className="muted descriptionText" style={{ fontSize: 13, marginTop: 6 }}>
                 Правила: {cp.safety_rules}
               </div>
             )}
