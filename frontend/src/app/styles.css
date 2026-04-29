@@ -824,10 +824,22 @@ input[type="file"] {
 .selectChevron {
   color: var(--muted);
   transition: transform 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .selectChevron.open {
   transform: rotate(180deg);
+}
+
+.selectChevronIcon {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .selectDropdown {
@@ -1396,7 +1408,7 @@ input[type="file"] {
 .questActionsMain {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   width: 100%;
 }
@@ -1404,17 +1416,19 @@ input[type="file"] {
 .questActionsTeam {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-wrap: nowrap;
+  align-items: stretch;
   flex: 1 1 420px;
+  min-width: 0;
 }
 
 .questActionBtn {
+  flex: 0 0 auto;
   min-width: 170px;
 }
 
 .questTeamSelect {
-  min-width: 240px;
+  min-width: 260px;
   flex: 1 1 260px;
 }
 
