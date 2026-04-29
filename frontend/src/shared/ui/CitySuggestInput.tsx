@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { fetchCitySuggestions, hasYandexSuggestApiKey, type CitySuggestion } from "@/shared/api/yandexSuggest";
 import { Input } from "@/shared/ui/Input";
 
@@ -17,6 +18,8 @@ export function CitySuggestInput({
   const [open, setOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
     if (disabled || !hasYandexSuggestApiKey() || value.trim().length < 2) {
@@ -55,10 +58,37 @@ export function CitySuggestInput({
     setOpen(false);
   }
 
+  const updateDropdownRect = useCallback(() => {
+    if (!inputRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    setDropdownRect({
+      top: rect.bottom + window.scrollY + 6,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open || !focused) return;
+    updateDropdownRect();
+  }, [open, focused, updateDropdownRect]);
+
+  useEffect(() => {
+    if (!open || !focused) return;
+    const onReposition = () => updateDropdownRect();
+    window.addEventListener("resize", onReposition);
+    window.addEventListener("scroll", onReposition, true);
+    return () => {
+      window.removeEventListener("resize", onReposition);
+      window.removeEventListener("scroll", onReposition, true);
+    };
+  }, [open, focused, updateDropdownRect]);
+
   return (
     <>
       <div className="suggestField">
         <Input
+          ref={inputRef}
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
@@ -76,23 +106,39 @@ export function CitySuggestInput({
           placeholder={placeholder}
           autoComplete="off"
         />
-        {!disabled && hasYandexSuggestApiKey() && focused && open && (loading || suggestions.length > 0) && (
-          <div className="suggestDropdown">
-            {loading && <div className="suggestItem muted">Ищем варианты…</div>}
-            {!loading &&
-              suggestions.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  className="suggestItem"
-                  onMouseDown={() => applySuggestion(item)}
-                >
-                  <span>{item.title}</span>
-                  {item.subtitle && <span className="muted" style={{ fontSize: 12 }}>{item.subtitle}</span>}
-                </button>
-              ))}
-          </div>
-        )}
+        {!disabled &&
+          hasYandexSuggestApiKey() &&
+          focused &&
+          open &&
+          (loading || suggestions.length > 0) &&
+          dropdownRect &&
+          createPortal(
+            <div
+              className="suggestDropdown"
+              style={{
+                position: "absolute",
+                top: dropdownRect.top,
+                left: dropdownRect.left,
+                width: dropdownRect.width,
+                zIndex: 1200,
+              }}
+            >
+              {loading && <div className="suggestItem muted">Ищем варианты…</div>}
+              {!loading &&
+                suggestions.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    className="suggestItem"
+                    onMouseDown={() => applySuggestion(item)}
+                  >
+                    <span>{item.title}</span>
+                    {item.subtitle && <span className="muted" style={{ fontSize: 12 }}>{item.subtitle}</span>}
+                  </button>
+                ))}
+            </div>,
+            document.body
+          )}
       </div>
       {!disabled && !hasYandexSuggestApiKey() && (
         <div className="hint">Для подсказок города добавь `VITE_YANDEX_SUGGEST_API_KEY` в `.env`.</div>
